@@ -1,5 +1,3 @@
-// Mock data for the dashboard UI. Replace with Prisma queries once the database is set up.
-
 export type ContentType = "TEXT" | "URL" | "FILE";
 
 export interface MockUser {
@@ -56,13 +54,76 @@ export const currentUser: MockUser = {
 };
 
 export const itemTypes: MockItemType[] = [
-  { id: "type_snippet", slug: "snippets", name: "Snippet", icon: "Code", color: "#3b82f6", contentType: "TEXT", proOnly: false, itemCount: 42 },
-  { id: "type_prompt", slug: "prompts", name: "Prompt", icon: "Sparkles", color: "#8b5cf6", contentType: "TEXT", proOnly: false, itemCount: 18 },
-  { id: "type_command", slug: "commands", name: "Command", icon: "Terminal", color: "#f97316", contentType: "TEXT", proOnly: false, itemCount: 9 },
-  { id: "type_note", slug: "notes", name: "Note", icon: "StickyNote", color: "#fde047", contentType: "TEXT", proOnly: false, itemCount: 23 },
-  { id: "type_link", slug: "links", name: "Link", icon: "Link", color: "#10b981", contentType: "URL", proOnly: false, itemCount: 31 },
-  { id: "type_file", slug: "files", name: "File", icon: "File", color: "#6b7280", contentType: "FILE", proOnly: true, itemCount: 0 },
-  { id: "type_image", slug: "images", name: "Image", icon: "Image", color: "#ec4899", contentType: "FILE", proOnly: true, itemCount: 0 },
+  {
+    id: "type_snippet",
+    slug: "snippets",
+    name: "Snippet",
+    icon: "Code",
+    color: "#3b82f6",
+    contentType: "TEXT",
+    proOnly: false,
+    itemCount: 42,
+  },
+  {
+    id: "type_prompt",
+    slug: "prompts",
+    name: "Prompt",
+    icon: "Sparkles",
+    color: "#8b5cf6",
+    contentType: "TEXT",
+    proOnly: false,
+    itemCount: 18,
+  },
+  {
+    id: "type_command",
+    slug: "commands",
+    name: "Command",
+    icon: "Terminal",
+    color: "#f97316",
+    contentType: "TEXT",
+    proOnly: false,
+    itemCount: 9,
+  },
+  {
+    id: "type_note",
+    slug: "notes",
+    name: "Note",
+    icon: "StickyNote",
+    color: "#fde047",
+    contentType: "TEXT",
+    proOnly: false,
+    itemCount: 23,
+  },
+  {
+    id: "type_link",
+    slug: "links",
+    name: "Link",
+    icon: "Link",
+    color: "#10b981",
+    contentType: "URL",
+    proOnly: false,
+    itemCount: 31,
+  },
+  {
+    id: "type_file",
+    slug: "files",
+    name: "File",
+    icon: "File",
+    color: "#6b7280",
+    contentType: "FILE",
+    proOnly: true,
+    itemCount: 0,
+  },
+  {
+    id: "type_image",
+    slug: "images",
+    name: "Image",
+    icon: "Image",
+    color: "#ec4899",
+    contentType: "FILE",
+    proOnly: true,
+    itemCount: 0,
+  },
 ];
 
 export const collections: MockCollection[] = [
@@ -122,7 +183,8 @@ export const items: MockItem[] = [
     title: "Refactor the auth flow",
     description: null,
     contentType: "TEXT",
-    content: "Split token refresh into its own module and drop the duplicated guard.",
+    content:
+      "Split token refresh into its own module and drop the duplicated guard.",
     language: null,
     url: null,
     typeId: "type_note",
@@ -154,7 +216,8 @@ export const items: MockItem[] = [
     title: "Code review assistant",
     description: null,
     contentType: "TEXT",
-    content: "You are a senior reviewer. Flag correctness and clarity issues, then suggest minimal edits.",
+    content:
+      "You are a senior reviewer. Flag correctness and clarity issues, then suggest minimal edits.",
     language: null,
     url: null,
     typeId: "type_prompt",
@@ -186,7 +249,8 @@ export const items: MockItem[] = [
     title: "Group by key",
     description: "Group a list of dicts by a field.",
     contentType: "TEXT",
-    content: "from itertools import groupby\ngrouped = {k: list(v) for k, v in groupby(sorted(rows, key=key), key=key)}",
+    content:
+      "from itertools import groupby\ngrouped = {k: list(v) for k, v in groupby(sorted(rows, key=key), key=key)}",
     language: "python",
     url: null,
     typeId: "type_snippet",
