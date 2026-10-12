@@ -1,18 +1,28 @@
 # Current Feature
 
-<!-- Feature name and short description -->
+**Dashboard UI Phase 2**: Build out the dashboard sidebar (phase 2 of 3), using mock data imported directly from `src/lib/mock-data.ts` until the database is implemented.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- Collapsible sidebar
+- Items/types with links to `/items/TYPE` (e.g. `/items/snippets`)
+- Favorite collections
+- Most recent collections
+- User avatar area at the bottom
+- Drawer icon to open/close the sidebar
+- Always a drawer on mobile view
 
 ## Notes
 
-<!-- Any extra notes -->
+- Spec: @context/features/dashboard-phase-2-spec.md
+- Reference screenshot: @context/screenshots/dashboard-main-ui.png
+- Data: @src/lib/mock-data.ts (import directly for now)
+- Related specs: @context/features/dashboard-phase-1-spec.md, @context/features/dashboard-phase-3-spec.md
+- Overview: @context/project-overview.md
 
 ## History
 
