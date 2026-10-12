@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Vault } from "lucide-react";
-import type { CSSProperties } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -30,6 +29,7 @@ import {
   items,
   type MockCollection,
 } from "@/lib/mock-data";
+import { typeColorVar } from "@/lib/type-color";
 
 const RECENT_COLLECTIONS_LIMIT = 5;
 
@@ -38,10 +38,6 @@ const recentCollections = getRecentCollections(
   collections.filter((collection) => !collection.isFavorite),
   items,
 ).slice(0, RECENT_COLLECTIONS_LIMIT);
-
-function colorVar(color: string) {
-  return { "--type-color": color } as CSSProperties;
-}
 
 function getInitials(name: string) {
   return name
@@ -101,7 +97,7 @@ function TypesGroup() {
                   isActive={pathname === href}
                   tooltip={`${type.name}s`}
                 >
-                  <Icon className="text-(--type-color)" style={colorVar(type.color)} />
+                  <Icon className="text-(--type-color)" style={typeColorVar(type.color)} />
                   <span>{type.name}s</span>
                 </SidebarMenuButton>
                 <SidebarMenuBadge>
@@ -149,7 +145,7 @@ function CollectionsGroup({ label, collections: groupCollections }: CollectionsG
                 >
                   <span
                     className="size-2 shrink-0 rounded-full bg-(--type-color)"
-                    style={colorVar(getCollectionColor(collection, itemTypes))}
+                    style={typeColorVar(getCollectionColor(collection, itemTypes))}
                   />
                   <span>{collection.name}</span>
                 </SidebarMenuButton>
