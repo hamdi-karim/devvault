@@ -658,6 +658,15 @@ Always enforce these checks **on the server** (Server Actions / Route Handlers).
 - Syntax highlighting for all code blocks
 - Inspiration: [Notion](https://www.notion.so), [Linear](https://linear.app), [Raycast](https://www.raycast.com)
 
+### Screenshots
+
+Refer to the screenshots below as a base for the Dashboard UI.
+It does not to be exact, use it as a reference:
+- @context/screenshots/dashboard-main-ui.png
+- @context/screenshots/dashboard-ui-drawer.png
+- @context/screenshots/dashboard-add-new-item.png
+
+
 ### Layout
 
 ```
