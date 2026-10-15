@@ -8,7 +8,14 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:status": "prisma migrate status",
+    "db:reset": "prisma migrate reset",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "db:test": "tsx scripts/test_db.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
