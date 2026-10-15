@@ -1,4 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client";
+import { SYSTEM_ITEM_TYPES } from "@/lib/constants/item-types";
 import { db } from "@/lib/db";
 import { userScope } from "@/lib/db/scope";
 
@@ -22,6 +23,12 @@ export interface DashboardItem {
   lastUsedAt: string;
   type: DashboardItemType;
   tags: string[];
+}
+
+export interface SidebarItemType extends DashboardItemType {
+  id: string;
+  proOnly: boolean;
+  itemCount: number;
 }
 
 export interface ItemStats {
@@ -79,6 +86,31 @@ export async function getRecentItems(limit: number): Promise<DashboardItem[]> {
   });
 
   return items.map(toDashboardItem);
+}
+
+// System item types in their seeded order, with the user's item count for each.
+export async function getSystemItemTypes(): Promise<SidebarItemType[]> {
+  const types = await db.itemType.findMany({
+    where: { isSystem: true },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      icon: true,
+      color: true,
+      _count: { select: { items: { where: userScope } } },
+    },
+  });
+
+  const order = SYSTEM_ITEM_TYPES.map((type) => type.slug as string);
+
+  return types
+    .map(({ _count, ...type }) => ({
+      ...type,
+      proOnly: SYSTEM_ITEM_TYPES.some((system) => system.slug === type.slug && system.proOnly),
+      itemCount: _count.items,
+    }))
+    .sort((a, b) => order.indexOf(a.slug) - order.indexOf(b.slug));
 }
 
 export async function getItemStats(): Promise<ItemStats> {

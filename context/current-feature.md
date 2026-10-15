@@ -1,18 +1,29 @@
 # Current Feature
 
-<!-- Feature name and short description -->
+**Stats & Sidebar from Database**: Load the sidebar's item types and collections, and the dashboard's main-area stats, from Neon via Prisma instead of `src/lib/mock-data.ts`. Spec: `context/features/stats-sidebar-spec.md`.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- Main-area stats cards show database data, keeping the current design/layout
+- Sidebar lists the system item types from the database with their Lucide icons and item counts, linking to `/items/[slug]`
+- Sidebar favorite collections come from the database and keep their star icons
+- Sidebar recent collections come from the database, each with a colored circle based on the most-used item type in that collection
+- Add a "View all collections" link under the collections list that goes to `/collections`
+- Item-type database functions live in `src/lib/db/items.ts`, following the patterns in `src/lib/db/collections.ts`
+- The sidebar uses mock data only for the user avatar area
 
 ## Notes
 
-<!-- Any extra notes -->
+- Main-area stats (total/favorite items, total/favorite collections) are already loaded via `getItemStats` and `getCollectionStats` in `src/app/dashboard/page.tsx`; verify them and keep the layout unchanged.
+- `src/lib/db/items.ts` already exists (`getPinnedItems`, `getRecentItems`, `getItemStats`); add the sidebar's item type query there rather than creating a new file.
+- `AppSidebar` is a client component (`usePathname`, `useSidebar`), so fetch the data in the server `src/app/dashboard/layout.tsx` and pass it in as props.
+- Reuse the dominant-type color logic from `getRecentCollections` in `src/lib/db/collections.ts` for the recent collections' circles; scope all queries with `userScope` from `src/lib/db/scope.ts` (demo user until auth exists).
+- The user avatar area still uses `currentUser` from mock data; leave it until auth is implemented.
+- `src/lib/collections.ts` imports mock types; remove or update it only if it ends up unused.
 
 ## History
 

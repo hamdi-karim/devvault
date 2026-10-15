@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Vault } from "lucide-react";
+import { ArrowRight, Star, Vault } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -20,24 +20,11 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { getCollectionColor, getRecentCollections } from "@/lib/collections";
+import type { DashboardCollection, SidebarCollections } from "@/lib/db/collections";
+import type { SidebarItemType } from "@/lib/db/items";
 import { getItemTypeIcon } from "@/lib/item-type-icons";
-import {
-  collections,
-  currentUser,
-  itemTypes,
-  items,
-  type MockCollection,
-} from "@/lib/mock-data";
+import { currentUser } from "@/lib/mock-data";
 import { typeColorVar } from "@/lib/type-color";
-
-const RECENT_COLLECTIONS_LIMIT = 5;
-
-const favoriteCollections = collections.filter((collection) => collection.isFavorite);
-const recentCollections = getRecentCollections(
-  collections.filter((collection) => !collection.isFavorite),
-  items,
-).slice(0, RECENT_COLLECTIONS_LIMIT);
 
 function getInitials(name: string) {
   return name
@@ -48,7 +35,12 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  itemTypes: SidebarItemType[];
+  collections: SidebarCollections;
+}
+
+export function AppSidebar({ itemTypes, collections }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -64,9 +56,10 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <TypesGroup />
-        <CollectionsGroup label="Favorite collections" collections={favoriteCollections} />
-        <CollectionsGroup label="Recent collections" collections={recentCollections} />
+        <TypesGroup itemTypes={itemTypes} />
+        <CollectionsGroup label="Favorite collections" collections={collections.favorites} />
+        <CollectionsGroup label="Recent collections" collections={collections.recents} />
+        <ViewAllCollections />
       </SidebarContent>
       <SidebarFooter>
         <UserMenu />
@@ -76,7 +69,7 @@ export function AppSidebar() {
   );
 }
 
-function TypesGroup() {
+function TypesGroup({ itemTypes }: { itemTypes: SidebarItemType[] }) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
 
@@ -120,7 +113,7 @@ function TypesGroup() {
 
 interface CollectionsGroupProps {
   label: string;
-  collections: MockCollection[];
+  collections: DashboardCollection[];
 }
 
 function CollectionsGroup({ label, collections: groupCollections }: CollectionsGroupProps) {
@@ -143,10 +136,14 @@ function CollectionsGroup({ label, collections: groupCollections }: CollectionsG
                   render={<Link href={href} onClick={() => setOpenMobile(false)} />}
                   isActive={pathname === href}
                 >
-                  <span
-                    className="size-2 shrink-0 rounded-full bg-(--type-color)"
-                    style={typeColorVar(getCollectionColor(collection, itemTypes))}
-                  />
+                  {collection.isFavorite ? (
+                    <Star className="fill-yellow-400 text-yellow-400" />
+                  ) : (
+                    <span
+                      className="size-2 shrink-0 rounded-full bg-(--type-color)"
+                      style={typeColorVar(collection.color)}
+                    />
+                  )}
                   <span>{collection.name}</span>
                 </SidebarMenuButton>
                 <SidebarMenuBadge className="text-muted-foreground">
@@ -157,6 +154,28 @@ function CollectionsGroup({ label, collections: groupCollections }: CollectionsG
           })}
         </SidebarMenu>
       </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+
+function ViewAllCollections() {
+  const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+
+  return (
+    <SidebarGroup className="pt-0 group-data-[collapsible=icon]:hidden">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            render={<Link href="/collections" onClick={() => setOpenMobile(false)} />}
+            isActive={pathname === "/collections"}
+            className="text-muted-foreground"
+          >
+            <span>View all collections</span>
+            <ArrowRight className="ml-auto" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
     </SidebarGroup>
   );
 }
