@@ -1,29 +1,18 @@
 # Current Feature
 
-**Stats & Sidebar from Database**: Load the sidebar's item types and collections, and the dashboard's main-area stats, from Neon via Prisma instead of `src/lib/mock-data.ts`. Spec: `context/features/stats-sidebar-spec.md`.
+<!-- Feature name and short description -->
 
 ## Feature Status
 
-In progress
+<!-- Not started | In progress | Completed -->
 
 ## Goals
 
-- Main-area stats cards show database data, keeping the current design/layout
-- Sidebar lists the system item types from the database with their Lucide icons and item counts, linking to `/items/[slug]`
-- Sidebar favorite collections come from the database and keep their star icons
-- Sidebar recent collections come from the database, each with a colored circle based on the most-used item type in that collection
-- Add a "View all collections" link under the collections list that goes to `/collections`
-- Item-type database functions live in `src/lib/db/items.ts`, following the patterns in `src/lib/db/collections.ts`
-- The sidebar uses mock data only for the user avatar area
+<!-- Goals and Requirements -->
 
 ## Notes
 
-- Main-area stats (total/favorite items, total/favorite collections) are already loaded via `getItemStats` and `getCollectionStats` in `src/app/dashboard/page.tsx`; verify them and keep the layout unchanged.
-- `src/lib/db/items.ts` already exists (`getPinnedItems`, `getRecentItems`, `getItemStats`); add the sidebar's item type query there rather than creating a new file.
-- `AppSidebar` is a client component (`usePathname`, `useSidebar`), so fetch the data in the server `src/app/dashboard/layout.tsx` and pass it in as props.
-- Reuse the dominant-type color logic from `getRecentCollections` in `src/lib/db/collections.ts` for the recent collections' circles; scope all queries with `userScope` from `src/lib/db/scope.ts` (demo user until auth exists).
-- The user avatar area still uses `currentUser` from mock data; leave it until auth is implemented.
-- `src/lib/collections.ts` imports mock types; remove or update it only if it ends up unused.
+<!-- Any extra notes -->
 
 ## History
 
@@ -37,3 +26,4 @@ In progress
 - **Seed Data** (Completed): Rewrote `prisma/seed.ts` to seed the 7 system item types, a demo user (`demo@devvault.io`, bcryptjs-hashed password, 12 rounds) and 5 collections with 18 snippets, prompts, commands and links (`prisma/seed-data.ts`). Re-runs recreate the demo user's content without duplicates. `npm run db:test` now shows the demo user and its collections.
 - **Dashboard Collections from Database** (Completed): Dashboard recent collection cards (up to 6) and collection stats now load from Neon via Prisma (`src/lib/db/collections.ts`: `getRecentCollections`, `getCollectionStats`), scoped to the demo user until auth exists. Card color comes from the most-used item type, computed at query time in a single query, and each card shows small icons for the types it contains. Dashboard page is now an async, dynamically rendered server component. Item stats, pinned/recent items and the sidebar remain on mock data.
 - **Dashboard Items from Database** (Completed): Dashboard pinned items, 10 most recent items and item stats (total and favorite items) now load from Neon via Prisma (`src/lib/db/items.ts`: `getPinnedItems`, `getRecentItems`, `getItemStats`), each list in a single query including type and tags. Recent items are ordered by `lastUsedAt` with `updatedAt` as fallback. `ItemCard` takes the DB item directly, with icon and border color from its type; the Pinned section is hidden when empty. Demo-user scoping moved to `src/lib/db/scope.ts`. The sidebar remains on mock data.
+- **Stats & Sidebar from Database** (Completed): Sidebar item types and collections now load from Neon via Prisma. `getSystemItemTypes` (`src/lib/db/items.ts`) returns the system types in seeded order with per-type item counts in one query (PRO lock from `SYSTEM_ITEM_TYPES`); `getSidebarCollections` (`src/lib/db/collections.ts`) returns favorites (star icon) and the 5 most recently updated non-favorites (dot colored by most-used type), sharing the select/mapping with `getRecentCollections`. The dashboard layout fetches both and passes them to `AppSidebar` as props; added a "View all collections" link to `/collections`. Main-area stats were already database-backed. Removed the unused mock helper `src/lib/collections.ts`; only the sidebar user area still uses mock data.
