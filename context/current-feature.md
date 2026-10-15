@@ -1,18 +1,33 @@
 # Current Feature
 
-<!-- Feature name and short description -->
+**Seed Data**: rewrite `prisma/seed.ts` to populate the database with a demo user, collections and items for development and demos. Spec: @context/features/seed-spec.md
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- **System item types**: keep seeding the 7 system types from `SYSTEM_ITEM_TYPES` (`isSystem: true`, `userId: null`)
+- **Demo user**:
+  - Email `demo@devvault.io`, name `Demo User`
+  - Password `12345678`, hashed with `bcryptjs` (12 rounds)
+  - `isPro: false`, `emailVerified: new Date()`
+- **Collections & items** (all owned by the demo user):
+  - **React Patterns** (_Reusable React patterns and hooks_): 3 TypeScript snippets (custom hooks such as useDebounce/useLocalStorage, component patterns such as context providers/compound components, utility functions)
+  - **AI Workflows** (_AI prompts and workflow automations_): 3 prompts (code review, documentation generation, refactoring assistance)
+  - **DevOps** (_Infrastructure and deployment resources_): 1 snippet (Docker / CI/CD config), 1 command (deployment script), 2 links (real documentation URLs)
+  - **Terminal Commands** (_Useful shell commands for everyday development_): 4 commands (git, Docker, process management, package manager utilities)
+  - **Design Resources** (_UI/UX resources and references_): 4 links (real URLs: CSS/Tailwind reference, component library, design system, icon library)
 
 ## Notes
 
-<!-- Any extra notes -->
+- Overwrite the current `prisma/seed.ts`. The existing system-type logic (find + update/create, because Prisma can't upsert on `[userId, slug]` when `userId` is null) can be reused.
+- `bcryptjs` is not installed yet; add it as a dependency.
+- Keep the seed idempotent: upsert the user by email, then delete and recreate the demo user's items and collections so re-running `npm run db:seed` doesn't duplicate data.
+- Use the matching `contentType` per type (`TEXT` for snippets/prompts/commands, `URL` for links) and set `language` on snippets and commands for syntax highlighting.
+- Assign items to collections through `ItemCollection` rows.
+- Verify: run `npm run db:seed` twice, inspect with `npm run db:studio`, then `npm run build`.
 
 ## History
 
