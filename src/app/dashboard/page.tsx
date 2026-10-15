@@ -4,27 +4,23 @@ import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { StatsCards } from "@/components/dashboard/StatsCards";
-import { getRecentCollections } from "@/lib/collections";
-import { collections, itemTypes, items, type MockItem } from "@/lib/mock-data";
+import { getCollectionStats, getRecentCollections } from "@/lib/db/collections";
+import { itemTypes, items, type MockItem } from "@/lib/mock-data";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Dashboard · DevVault",
 };
 
-const RECENT_COLLECTIONS_LIMIT = 4;
+const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;
 
-const stats = {
+const itemStats = {
   items: itemTypes.reduce((total, type) => total + type.itemCount, 0),
-  collections: collections.length,
   favoriteItems: items.filter((item) => item.isFavorite).length,
-  favoriteCollections: collections.filter((collection) => collection.isFavorite).length,
 };
 
-const recentCollections = getRecentCollections(collections, items).slice(
-  0,
-  RECENT_COLLECTIONS_LIMIT,
-);
 const pinnedItems = items.filter((item) => item.isPinned);
 const recentItems = [...items]
   .sort((a, b) => Date.parse(b.lastUsedAt) - Date.parse(a.lastUsedAt))
@@ -48,7 +44,13 @@ function ItemGrid({ items: gridItems }: { items: MockItem[] }) {
   );
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [recentCollections, collectionStats] = await Promise.all([
+    getRecentCollections(RECENT_COLLECTIONS_LIMIT),
+    getCollectionStats(),
+  ]);
+  const stats = { ...itemStats, ...collectionStats };
+
   return (
     <div className="mx-auto max-w-6xl space-y-10">
       <div>
@@ -66,7 +68,7 @@ export default function DashboardPage() {
       >
         <div className="grid gap-4 md:grid-cols-2">
           {recentCollections.map((collection) => (
-            <CollectionCard key={collection.id} collection={collection} itemTypes={itemTypes} />
+            <CollectionCard key={collection.id} collection={collection} />
           ))}
         </div>
       </DashboardSection>
