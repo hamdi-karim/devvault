@@ -5,7 +5,12 @@ import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { getCollectionStats, getRecentCollections } from "@/lib/db/collections";
-import { itemTypes, items, type MockItem } from "@/lib/mock-data";
+import {
+  type DashboardItem,
+  getItemStats,
+  getPinnedItems,
+  getRecentItems,
+} from "@/lib/db/items";
 
 export const dynamic = "force-dynamic";
 
@@ -16,39 +21,29 @@ export const metadata: Metadata = {
 const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;
 
-const itemStats = {
-  items: itemTypes.reduce((total, type) => total + type.itemCount, 0),
-  favoriteItems: items.filter((item) => item.isFavorite).length,
-};
-
-const pinnedItems = items.filter((item) => item.isPinned);
-const recentItems = [...items]
-  .sort((a, b) => Date.parse(b.lastUsedAt) - Date.parse(a.lastUsedAt))
-  .slice(0, RECENT_ITEMS_LIMIT);
-
 function pluralize(count: number, noun: string) {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-function ItemGrid({ items: gridItems }: { items: MockItem[] }) {
+function ItemGrid({ items }: { items: DashboardItem[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {gridItems.map((item) => (
-        <ItemCard
-          key={item.id}
-          item={item}
-          type={itemTypes.find((type) => type.id === item.typeId)}
-        />
+      {items.map((item) => (
+        <ItemCard key={item.id} item={item} />
       ))}
     </div>
   );
 }
 
 export default async function DashboardPage() {
-  const [recentCollections, collectionStats] = await Promise.all([
-    getRecentCollections(RECENT_COLLECTIONS_LIMIT),
-    getCollectionStats(),
-  ]);
+  const [recentCollections, collectionStats, pinnedItems, recentItems, itemStats] =
+    await Promise.all([
+      getRecentCollections(RECENT_COLLECTIONS_LIMIT),
+      getCollectionStats(),
+      getPinnedItems(),
+      getRecentItems(RECENT_ITEMS_LIMIT),
+      getItemStats(),
+    ]);
   const stats = { ...itemStats, ...collectionStats };
 
   return (

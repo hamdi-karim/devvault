@@ -1,18 +1,27 @@
 # Current Feature
 
-<!-- Feature name and short description -->
+**Dashboard Items from Database**: Replace the mock item data in the dashboard main area (pinned items, recent items and item stats) with real data from Neon via Prisma. Spec: @context/features/dashboard-items-spec.md
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- Create `src/lib/db/items.ts` with data fetching functions for pinned items, recent items (10 most recently used) and item stats (total items, favorite items)
+- Fetch items directly in the dashboard server component (`src/app/dashboard/page.tsx`) instead of from `src/lib/mock-data.ts`
+- Derive each item card's icon and border color from its item type
+- Keep everything the cards currently show: type icon, title, description, tags, relative time, etc.
+- Hide the Pinned section entirely when there are no pinned items
+- Update the stats display so item counts (total and favorite items) come from the database alongside the existing collection stats
+- UI should look the same as it does now
 
 ## Notes
 
-<!-- Any extra notes -->
+- Follow the pattern in `src/lib/db/collections.ts`: scope queries to the demo user until auth exists, and avoid N+1 queries (include type and tags in one query)
+- `ItemCard` currently takes a `MockItem` + mock type; adapt its props to a proper item type shape (define in `src/types/` if needed)
+- The sidebar stays on mock data for now
+- Reference screenshot if needed: @context/screenshots/dashboard-main-ui.png
 
 ## History
 

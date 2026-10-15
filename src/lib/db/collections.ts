@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
+import { userScope } from "@/lib/db/scope";
 
-// No auth yet: dashboard data is scoped to the seeded demo user.
-const DEMO_USER_EMAIL = "demo@devvault.io";
 const FALLBACK_COLOR = "#6b7280";
 
 export interface CollectionTypeCount {
@@ -27,8 +26,6 @@ export interface CollectionStats {
   collections: number;
   favoriteCollections: number;
 }
-
-const userScope = { user: { email: DEMO_USER_EMAIL } };
 
 function countTypes(types: Omit<CollectionTypeCount, "count">[]): CollectionTypeCount[] {
   const counts = new Map<string, CollectionTypeCount>();
