@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Status** | Planning |
+| **Status** | In progress (Phase 1: Foundation) |
 | **Model** | Freemium SaaS (Free / Pro) |
 | **Stack** | Next.js 16 · React 19 · TypeScript · Prisma 7 · Neon Postgres · Auth.js v5 · Cloudflare R2 · Tailwind v4 · shadcn/ui · OpenAI |
 
@@ -507,8 +507,10 @@ model Tag {
 
 ```ts
 import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
+// The CLI (migrate, studio) uses Neon's direct connection when DIRECT_URL is set.
+// The app uses the pooled DATABASE_URL at runtime (see src/lib/db.ts).
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -516,7 +518,7 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    url: process.env.DIRECT_URL ?? process.env.DATABASE_URL,
   },
 });
 ```
@@ -569,7 +571,8 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 
 ```bash
 # Database
-DATABASE_URL=
+DATABASE_URL=   # pooled connection (app runtime)
+DIRECT_URL=     # direct connection (Prisma CLI: migrate, studio)
 
 # Auth.js
 AUTH_SECRET=
