@@ -1,27 +1,18 @@
-# Current Feature: Topbar New Button
+# Current Feature
 
-Restyle the "New" button in the top bar and turn it into a dropdown menu with "New item" and "New collection" options, matching the screenshot.
+<!-- Feature name and short description -->
 
 ## Feature Status
 
-In Progress
+<!-- Not started | In progress | Completed -->
 
 ## Goals
 
-- Button shows a `Plus` icon, the "New" label and a chevron, on a blue → purple gradient (snippet `#3b82f6` → prompt `#8b5cf6`) with a subtle hover state
-- Clicking opens a dropdown aligned to the button's right edge; the chevron flips while open
-- Menu items: "New item" with a blue `FilePlus` icon, "New collection" with a purple `FolderPlus` icon
-- Closes on outside click, Escape, or selecting an item; keyboard navigable
-- Built on the shadcn `DropdownMenu` component (added via the shadcn CLI)
-- Menu lives in its own client component (`src/components/layout/NewMenu.tsx`); `TopBar` stays a server component
-- On mobile, the button collapses to the `+` icon only
+<!-- Goals and Requirements -->
 
 ## Notes
 
-- Out of scope: the menu items don't open anything yet; the item drawer and collection form are separate features
-- Spec: @context/features/topbar-add-new-button-spec.md
-- Screenshot: @context/screenshots/topbar-add-new-button.png
-- File to change: @src/components/layout/TopBar.tsx
+<!-- Any extra notes -->
 
 ## History
 
@@ -36,3 +27,4 @@ In Progress
 - **Dashboard Collections from Database** (Completed): Dashboard recent collection cards (up to 6) and collection stats now load from Neon via Prisma (`src/lib/db/collections.ts`: `getRecentCollections`, `getCollectionStats`), scoped to the demo user until auth exists. Card color comes from the most-used item type, computed at query time in a single query, and each card shows small icons for the types it contains. Dashboard page is now an async, dynamically rendered server component. Item stats, pinned/recent items and the sidebar remain on mock data.
 - **Dashboard Items from Database** (Completed): Dashboard pinned items, 10 most recent items and item stats (total and favorite items) now load from Neon via Prisma (`src/lib/db/items.ts`: `getPinnedItems`, `getRecentItems`, `getItemStats`), each list in a single query including type and tags. Recent items are ordered by `lastUsedAt` with `updatedAt` as fallback. `ItemCard` takes the DB item directly, with icon and border color from its type; the Pinned section is hidden when empty. Demo-user scoping moved to `src/lib/db/scope.ts`. The sidebar remains on mock data.
 - **Stats & Sidebar from Database** (Completed): Sidebar item types and collections now load from Neon via Prisma. `getSystemItemTypes` (`src/lib/db/items.ts`) returns the system types in seeded order with per-type item counts in one query (PRO lock from `SYSTEM_ITEM_TYPES`); `getSidebarCollections` (`src/lib/db/collections.ts`) returns favorites (star icon) and the 5 most recently updated non-favorites (dot colored by most-used type), sharing the select/mapping with `getRecentCollections`. The dashboard layout fetches both and passes them to `AppSidebar` as props; added a "View all collections" link to `/collections`. Main-area stats were already database-backed. Removed the unused mock helper `src/lib/collections.ts`; only the sidebar user area still uses mock data.
+- **Topbar New Button** (Completed): The top bar "New" button is now a blue → violet gradient button (`rounded-xl`, matching the search input height) that opens a dropdown with "New item" (`FilePlus`) and "New collection" (`FolderPlus`); the chevron flips while open and on mobile only the `+` icon shows. Built as the client component `src/components/layout/NewMenu.tsx` on the shadcn `DropdownMenu` (Base UI `Menu`, added via the CLI), so `TopBar` stays a server component. Menu options are placeholders until the item drawer and collection form exist.
