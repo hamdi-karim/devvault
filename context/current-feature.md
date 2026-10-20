@@ -1,18 +1,27 @@
-# Current Feature
+# Current Feature: Topbar New Button
 
-<!-- Feature name and short description -->
+Restyle the "New" button in the top bar and turn it into a dropdown menu with "New item" and "New collection" options, matching the screenshot.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- Button shows a `Plus` icon, the "New" label and a chevron, on a blue → purple gradient (snippet `#3b82f6` → prompt `#8b5cf6`) with a subtle hover state
+- Clicking opens a dropdown aligned to the button's right edge; the chevron flips while open
+- Menu items: "New item" with a blue `FilePlus` icon, "New collection" with a purple `FolderPlus` icon
+- Closes on outside click, Escape, or selecting an item; keyboard navigable
+- Built on the shadcn `DropdownMenu` component (added via the shadcn CLI)
+- Menu lives in its own client component (`src/components/layout/NewMenu.tsx`); `TopBar` stays a server component
+- On mobile, the button collapses to the `+` icon only
 
 ## Notes
 
-<!-- Any extra notes -->
+- Out of scope: the menu items don't open anything yet; the item drawer and collection form are separate features
+- Spec: @context/features/topbar-add-new-button-spec.md
+- Screenshot: @context/screenshots/topbar-add-new-button.png
+- File to change: @src/components/layout/TopBar.tsx
 
 ## History
 

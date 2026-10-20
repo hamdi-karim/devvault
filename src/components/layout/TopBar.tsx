@@ -1,6 +1,6 @@
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { NewMenu } from "@/components/layout/NewMenu";
 import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -19,10 +19,7 @@ export function TopBar() {
         />
         <Kbd className="absolute top-1/2 right-2 -translate-y-1/2">⌘K</Kbd>
       </div>
-      <Button className="ml-auto">
-        <Plus />
-        New
-      </Button>
+      <NewMenu />
     </header>
   );
 }
