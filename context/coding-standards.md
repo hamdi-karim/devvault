@@ -68,6 +68,7 @@ Example v4 configuration:
 - Tailwind CSS for all styling
 - Use shadcn/ui components where applicable
 - No inline styles
+  - Exception: setting CSS custom properties for runtime type colors via `style={typeColorVar(...)}`, consumed by Tailwind classes such as `text-(--type-color)`
 - Dark mode first, light mode as option
 
 ## Database

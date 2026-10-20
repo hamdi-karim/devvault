@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SIDEBAR_COOKIE_NAME } from "@/lib/constants/sidebar";
 import { getSidebarCollections } from "@/lib/db/collections";
 import { getSystemItemTypes } from "@/lib/db/items";
 
@@ -14,7 +15,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
     getSystemItemTypes(),
     getSidebarCollections(RECENT_COLLECTIONS_LIMIT),
   ]);
-  const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
+  const defaultOpen = cookieStore.get(SIDEBAR_COOKIE_NAME)?.value !== "false";
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>

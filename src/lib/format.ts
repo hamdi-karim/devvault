@@ -14,3 +14,8 @@ export function formatRelativeTime(date: string, now: number = Date.now()): stri
 
   return "now";
 }
+
+// e.g. "1 item", "3 items".
+export function pluralize(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}

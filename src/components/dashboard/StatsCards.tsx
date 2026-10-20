@@ -15,7 +15,11 @@ interface StatCard {
   icon: LucideIcon;
 }
 
-export function StatsCards({ stats }: { stats: DashboardStats }) {
+interface StatsCardsProps {
+  stats: DashboardStats;
+}
+
+export function StatsCards({ stats }: StatsCardsProps) {
   const cards: StatCard[] = [
     { label: "Items", value: stats.items, icon: Layers },
     { label: "Collections", value: stats.collections, icon: FolderOpen },

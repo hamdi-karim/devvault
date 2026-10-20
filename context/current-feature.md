@@ -1,18 +1,25 @@
 # Current Feature
 
-<!-- Feature name and short description -->
+**Code Scan Quick Wins**: Low-risk cleanups from the code-scanner report. No schema changes, no query changes, no behavior changes beyond fixing the "1 items" label.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- **Fix "1 items" pluralization**: Move the private `pluralize` helper from `src/app/dashboard/page.tsx` into `src/lib/format.ts`, then use it in the dashboard page and in `src/components/dashboard/CollectionCard.tsx:30` (`{pluralize(collection.itemCount, "item")}`).
+- ~~**Use `getItemTypeIcon` in ItemCard**~~ (Dropped): calling `getItemTypeIcon(...)` at the top of `ItemCard`'s render trips the `react-hooks/static-components` lint rule ("Cannot create components during render"), while the `ITEM_TYPE_ICONS[type.icon] ?? File` lookup does not. Kept the lookup as is.
+- **Trim unused mock data**: In `src/lib/mock-data.ts`, keep only `MockUser` and `currentUser` (still used by the sidebar user area). Remove the unused `itemTypes`, `collections` and `items` exports, the `ContentType` type and the `MockItemType`/`MockCollection`/`MockItem` interfaces.
+- **Named prop interfaces**: Replace the inline prop types on `StatsCards` (`src/components/dashboard/StatsCards.tsx`), `ItemPreview` (`ItemCard.tsx`), `ItemGrid` (`src/app/dashboard/page.tsx`) and `TypesGroup` (`src/components/layout/AppSidebar.tsx`) with named `*Props` interfaces.
+- **Remove leftover prop rename**: In `CollectionsGroup` (`src/components/layout/AppSidebar.tsx:119`), destructure `collections` directly instead of `collections: groupCollections`.
+- **Share the sidebar cookie name**: Move `SIDEBAR_COOKIE_NAME` into `src/lib/constants/sidebar.ts` and import it in both `src/components/ui/sidebar.tsx` and `src/app/dashboard/layout.tsx` instead of the `"sidebar_state"` string. (It can't be exported from `sidebar.tsx` directly: that file is `"use client"`, so the server layout would get a client reference, not the string.)
+- **Document the CSS-variable exception**: Add a note to `context/coding-standards.md` that `style={typeColorVar(...)}` (setting CSS custom properties for runtime type colors) is the one allowed form of inline style.
 
 ## Notes
 
-<!-- Any extra notes -->
+- Out of scope (larger, or a behavior or schema change, so they get their own feature): aggregating collection type counts in the database, trimming item `content` and capping pinned items, splitting `AppSidebar` into separate files, removing the redundant `userId` indexes (needs a migration), wrapping the seed in a transaction, and moving the demo password to an env var.
+- Verify: `npm run lint`, `npx tsc --noEmit` and `npm run build` pass, the dashboard and sidebar look unchanged, and a one-item collection shows "1 item".
 
 ## History
 

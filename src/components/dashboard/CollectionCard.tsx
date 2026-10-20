@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 
 import type { DashboardCollection } from "@/lib/db/collections";
+import { pluralize } from "@/lib/format";
 import { getItemTypeIcon } from "@/lib/item-type-icons";
 import { typeColorVar } from "@/lib/type-color";
 
@@ -27,7 +28,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
         <span className="size-2.5 rounded-full bg-(--type-color)" />
         <span className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
           {collection.isFavorite && <Star className="size-3.5 fill-yellow-400 text-yellow-400" />}
-          {collection.itemCount} items
+          {pluralize(collection.itemCount, "item")}
         </span>
       </div>
       <h3 className="mt-1 font-semibold">{collection.name}</h3>

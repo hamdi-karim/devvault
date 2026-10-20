@@ -69,7 +69,11 @@ export function AppSidebar({ itemTypes, collections }: AppSidebarProps) {
   );
 }
 
-function TypesGroup({ itemTypes }: { itemTypes: SidebarItemType[] }) {
+interface TypesGroupProps {
+  itemTypes: SidebarItemType[];
+}
+
+function TypesGroup({ itemTypes }: TypesGroupProps) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
 
@@ -116,18 +120,18 @@ interface CollectionsGroupProps {
   collections: DashboardCollection[];
 }
 
-function CollectionsGroup({ label, collections: groupCollections }: CollectionsGroupProps) {
+function CollectionsGroup({ label, collections }: CollectionsGroupProps) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
 
-  if (groupCollections.length === 0) return null;
+  if (collections.length === 0) return null;
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {groupCollections.map((collection) => {
+          {collections.map((collection) => {
             const href = `/collections/${collection.id}`;
 
             return (

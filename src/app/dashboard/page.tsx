@@ -11,6 +11,7 @@ import {
   getPinnedItems,
   getRecentItems,
 } from "@/lib/db/items";
+import { pluralize } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +22,11 @@ export const metadata: Metadata = {
 const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;
 
-function pluralize(count: number, noun: string) {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+interface ItemGridProps {
+  items: DashboardItem[];
 }
 
-function ItemGrid({ items }: { items: DashboardItem[] }) {
+function ItemGrid({ items }: ItemGridProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {items.map((item) => (

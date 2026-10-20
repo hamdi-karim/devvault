@@ -10,7 +10,11 @@ interface ItemCardProps {
   item: DashboardItem;
 }
 
-function ItemPreview({ item }: { item: DashboardItem }) {
+interface ItemPreviewProps {
+  item: DashboardItem;
+}
+
+function ItemPreview({ item }: ItemPreviewProps) {
   if (item.url) {
     return <p className="truncate text-sm text-muted-foreground">{item.url}</p>;
   }
