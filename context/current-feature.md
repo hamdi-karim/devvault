@@ -1,25 +1,18 @@
 # Current Feature
 
-**Code Scan Quick Wins**: Low-risk cleanups from the code-scanner report. No schema changes, no query changes, no behavior changes beyond fixing the "1 items" label.
+<!-- Feature name and short description -->
 
 ## Feature Status
 
-In Progress
+<!-- Not started | In progress | Completed -->
 
 ## Goals
 
-- **Fix "1 items" pluralization**: Move the private `pluralize` helper from `src/app/dashboard/page.tsx` into `src/lib/format.ts`, then use it in the dashboard page and in `src/components/dashboard/CollectionCard.tsx:30` (`{pluralize(collection.itemCount, "item")}`).
-- ~~**Use `getItemTypeIcon` in ItemCard**~~ (Dropped): calling `getItemTypeIcon(...)` at the top of `ItemCard`'s render trips the `react-hooks/static-components` lint rule ("Cannot create components during render"), while the `ITEM_TYPE_ICONS[type.icon] ?? File` lookup does not. Kept the lookup as is.
-- **Trim unused mock data**: In `src/lib/mock-data.ts`, keep only `MockUser` and `currentUser` (still used by the sidebar user area). Remove the unused `itemTypes`, `collections` and `items` exports, the `ContentType` type and the `MockItemType`/`MockCollection`/`MockItem` interfaces.
-- **Named prop interfaces**: Replace the inline prop types on `StatsCards` (`src/components/dashboard/StatsCards.tsx`), `ItemPreview` (`ItemCard.tsx`), `ItemGrid` (`src/app/dashboard/page.tsx`) and `TypesGroup` (`src/components/layout/AppSidebar.tsx`) with named `*Props` interfaces.
-- **Remove leftover prop rename**: In `CollectionsGroup` (`src/components/layout/AppSidebar.tsx:119`), destructure `collections` directly instead of `collections: groupCollections`.
-- **Share the sidebar cookie name**: Move `SIDEBAR_COOKIE_NAME` into `src/lib/constants/sidebar.ts` and import it in both `src/components/ui/sidebar.tsx` and `src/app/dashboard/layout.tsx` instead of the `"sidebar_state"` string. (It can't be exported from `sidebar.tsx` directly: that file is `"use client"`, so the server layout would get a client reference, not the string.)
-- **Document the CSS-variable exception**: Add a note to `context/coding-standards.md` that `style={typeColorVar(...)}` (setting CSS custom properties for runtime type colors) is the one allowed form of inline style.
+<!-- Goals and Requirements -->
 
 ## Notes
 
-- Out of scope (larger, or a behavior or schema change, so they get their own feature): aggregating collection type counts in the database, trimming item `content` and capping pinned items, splitting `AppSidebar` into separate files, removing the redundant `userId` indexes (needs a migration), wrapping the seed in a transaction, and moving the demo password to an env var.
-- Verify: `npm run lint`, `npx tsc --noEmit` and `npm run build` pass, the dashboard and sidebar look unchanged, and a one-item collection shows "1 item".
+<!-- Any extra notes -->
 
 ## History
 
@@ -35,3 +28,4 @@ In Progress
 - **Dashboard Items from Database** (Completed): Dashboard pinned items, 10 most recent items and item stats (total and favorite items) now load from Neon via Prisma (`src/lib/db/items.ts`: `getPinnedItems`, `getRecentItems`, `getItemStats`), each list in a single query including type and tags. Recent items are ordered by `lastUsedAt` with `updatedAt` as fallback. `ItemCard` takes the DB item directly, with icon and border color from its type; the Pinned section is hidden when empty. Demo-user scoping moved to `src/lib/db/scope.ts`. The sidebar remains on mock data.
 - **Stats & Sidebar from Database** (Completed): Sidebar item types and collections now load from Neon via Prisma. `getSystemItemTypes` (`src/lib/db/items.ts`) returns the system types in seeded order with per-type item counts in one query (PRO lock from `SYSTEM_ITEM_TYPES`); `getSidebarCollections` (`src/lib/db/collections.ts`) returns favorites (star icon) and the 5 most recently updated non-favorites (dot colored by most-used type), sharing the select/mapping with `getRecentCollections`. The dashboard layout fetches both and passes them to `AppSidebar` as props; added a "View all collections" link to `/collections`. Main-area stats were already database-backed. Removed the unused mock helper `src/lib/collections.ts`; only the sidebar user area still uses mock data.
 - **Topbar New Button** (Completed): The top bar "New" button is now a blue → violet gradient button (`rounded-xl`, matching the search input height) that opens a dropdown with "New item" (`FilePlus`) and "New collection" (`FolderPlus`); the chevron flips while open and on mobile only the `+` icon shows. Built as the client component `src/components/layout/NewMenu.tsx` on the shadcn `DropdownMenu` (Base UI `Menu`, added via the CLI), so `TopBar` stays a server component. Menu options are placeholders until the item drawer and collection form exist.
+- **Code Scan Quick Wins** (Completed): Low-risk cleanups from the new `code-scanner` subagent's report (`.claude/agents/code-scanner.md`). Collection cards now say "1 item" instead of "1 items" via a shared `pluralize` in `src/lib/format.ts`; `src/lib/mock-data.ts` is trimmed to `currentUser`; `StatsCards`, `ItemPreview`, `ItemGrid` and `TypesGroup` got named `*Props` interfaces; the leftover `groupCollections` rename is gone; `SIDEBAR_COOKIE_NAME` moved to `src/lib/constants/sidebar.ts` and is shared by the client sidebar and the server layout (it can't be exported from the `"use client"` `sidebar.tsx`); and `coding-standards.md` now allows `style={typeColorVar(...)}`. Switching `ItemCard` to `getItemTypeIcon` was dropped because it trips the `react-hooks/static-components` lint rule. Larger findings (DB-side collection type counts, trimming item content and capping pinned items, splitting `AppSidebar`, redundant `userId` indexes, seed transaction, demo password env var) are left for future features.
