@@ -28,3 +28,10 @@ Read the following to get the full context of the project:
 - `npm run db:test`: check the database connection and seeded data
 
 No test framework is set up yet.
+
+## Neon MCP
+
+- Always use the **devvault** project: `project_id: damp-sun-76199273`.
+- Always target the **development** branch: `branch_id: br-summer-dew-b9uz0b1n`. Pass `branch_id` explicitly on every call that accepts it, because the tools fall back to the default branch, which is production.
+- **Never touch production** (`br-raspy-star-b9vsk4by`), not even for read-only queries, unless I explicitly say "production" in my request.
+- Ask before running destructive SQL or schema changes (DROP, DELETE, TRUNCATE, ALTER), even on development. Schema changes go through Prisma migrations, never through the MCP.
