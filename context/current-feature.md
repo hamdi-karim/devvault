@@ -1,34 +1,18 @@
-# Current Feature: Auth Phase 2 - Email/Password Credentials Provider
+# Current Feature
 
-Add the Auth.js Credentials provider for email/password sign-in, plus a registration API route.
+<!-- Feature name and short description -->
 
 ## Feature Status
 
-In Progress (implemented and tested, awaiting commit)
+<!-- Not started | In progress | Completed -->
 
 ## Goals
 
-- Credentials provider added to `src/auth.config.ts` as an edge-safe placeholder (`authorize: () => null`)
-- `src/auth.ts` overrides the Credentials provider with real validation: look up the user by email and compare the password with bcryptjs
-- `User.password` field available (already in the schema, so no migration needed)
-- `POST /api/auth/register` accepts `name`, `email`, `password`, `confirmPassword`:
-  - validates input and that the passwords match
-  - rejects an email that already exists
-  - hashes the password with bcryptjs and creates the user
-  - returns a success/error JSON response with suitable status codes
-- Signing in with email/password at `/api/auth/signin` redirects to `/dashboard`
-- GitHub OAuth keeps working
+<!-- Goals and Requirements -->
 
 ## Notes
 
-- Spec: `context/features/auth-phase-2-spec.md`. Reference: https://authjs.dev/getting-started/authentication/credentials
-- Split pattern: `auth.config.ts` stays free of Prisma/bcrypt so `src/proxy.ts` remains edge-compatible; only `auth.ts` imports them.
-- Credentials requires JWT sessions, which are already configured in Phase 1.
-- `password` is already a nullable column on `User` (`prisma/schema.prisma:30`), so OAuth-only users have no password and must be rejected by `authorize`.
-- Seeded demo user uses 12 bcrypt rounds; registration should match.
-- Coding standards require Zod validation, but `zod` isn't installed yet; it needs adding.
-- Test: register via curl (see spec), sign in at `/api/auth/signin`, confirm redirect to `/dashboard`, then confirm GitHub sign-in still works.
-- Custom sign-in/register pages are Phase 3.
+<!-- Any extra notes -->
 
 ## History
 
@@ -46,3 +30,4 @@ In Progress (implemented and tested, awaiting commit)
 - **Topbar New Button** (Completed): The top bar "New" button is now a blue → violet gradient button (`rounded-xl`, matching the search input height) that opens a dropdown with "New item" (`FilePlus`) and "New collection" (`FolderPlus`); the chevron flips while open and on mobile only the `+` icon shows. Built as the client component `src/components/layout/NewMenu.tsx` on the shadcn `DropdownMenu` (Base UI `Menu`, added via the CLI), so `TopBar` stays a server component. Menu options are placeholders until the item drawer and collection form exist.
 - **Code Scan Quick Wins** (Completed): Low-risk cleanups from the new `code-scanner` subagent's report (`.claude/agents/code-scanner.md`). Collection cards now say "1 item" instead of "1 items" via a shared `pluralize` in `src/lib/format.ts`; `src/lib/mock-data.ts` is trimmed to `currentUser`; `StatsCards`, `ItemPreview`, `ItemGrid` and `TypesGroup` got named `*Props` interfaces; the leftover `groupCollections` rename is gone; `SIDEBAR_COOKIE_NAME` moved to `src/lib/constants/sidebar.ts` and is shared by the client sidebar and the server layout (it can't be exported from the `"use client"` `sidebar.tsx`); and `coding-standards.md` now allows `style={typeColorVar(...)}`. Switching `ItemCard` to `getItemTypeIcon` was dropped because it trips the `react-hooks/static-components` lint rule. Larger findings (DB-side collection type counts, trimming item content and capping pinned items, splitting `AppSidebar`, redundant `userId` indexes, seed transaction, demo password env var) are left for future features.
 - **Auth Phase 1 - NextAuth + GitHub Provider** (Completed): Auth.js v5 (`next-auth@beta`) with the Prisma adapter, JWT sessions and GitHub OAuth, using NextAuth's default pages. Config is split for edge compatibility: `src/auth.config.ts` (providers only) is used by `src/proxy.ts`, which protects `/dashboard/*` and redirects signed-out users to `/api/auth/signin` with a `callbackUrl`; `src/auth.ts` adds the adapter and `jwt`/`session` callbacks that expose `session.user.id` (typed in `src/types/next-auth.d.ts`). Handlers are served from `src/app/api/auth/[...nextauth]/route.ts`; auth env vars documented in `.env.example`. Phase 3 spec now requires a pending/disabled GitHub button, since the default page gives no feedback during the slow localhost callback and repeated clicks restart the OAuth flow.
+- **Auth Phase 2 - Email/Password Credentials Provider** (Completed): Auth.js Credentials provider for email/password sign-in, keeping the split config: `src/auth.config.ts` holds an edge-safe placeholder (`authorize: () => null`, which also makes the default sign-in page render the email/password form) and `src/auth.ts` filters it out and replaces it with the real provider (Zod-parsed input, lookup by lowercased email, bcryptjs compare; OAuth-only users without a password are rejected; every failure returns `null` so nothing leaks). New `POST /api/auth/register` (`src/app/api/auth/register/route.ts`) validates `name`/`email`/`password`/`confirmPassword` with `registerSchema` (`src/lib/validations/auth.ts`; `zod` 4 added), returns 400 on validation errors, 409 on an existing email (including the `P2002` race), hashes with `BCRYPT_ROUNDS` (new `src/lib/constants/auth.ts`, now shared with `prisma/seed.ts`) and returns `{ success, data, error }` with 201. No migration needed since `User.password` already existed. Verified with curl and Playwright: wrong password → `error=CredentialsSignin`, new and seeded demo users land on `/dashboard`, GitHub button still starts OAuth. Lesson: `next start` loads `.env.production` (production Neon), so only test against `npm run dev`.
