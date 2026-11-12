@@ -1,6 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
-import { userScope } from "@/lib/db/scope";
 
 const FALLBACK_COLOR = "#6b7280";
 
@@ -72,9 +71,9 @@ function toDashboardCollection({ items, ...collection }: SelectedCollection): Da
 }
 
 // Most recently updated collections, with item types counted in one query.
-export async function getRecentCollections(limit: number): Promise<DashboardCollection[]> {
+export async function getRecentCollections(userId: string, limit: number): Promise<DashboardCollection[]> {
   const collections = await db.collection.findMany({
-    where: userScope,
+    where: { userId },
     orderBy: { updatedAt: "desc" },
     take: limit,
     select: collectionSelect,
@@ -84,15 +83,15 @@ export async function getRecentCollections(limit: number): Promise<DashboardColl
 }
 
 // Favorite collections by name, and the most recently updated non-favorites.
-export async function getSidebarCollections(recentLimit: number): Promise<SidebarCollections> {
+export async function getSidebarCollections(userId: string, recentLimit: number): Promise<SidebarCollections> {
   const [favorites, recents] = await Promise.all([
     db.collection.findMany({
-      where: { ...userScope, isFavorite: true },
+      where: { userId, isFavorite: true },
       orderBy: { name: "asc" },
       select: collectionSelect,
     }),
     db.collection.findMany({
-      where: { ...userScope, isFavorite: false },
+      where: { userId, isFavorite: false },
       orderBy: { updatedAt: "desc" },
       take: recentLimit,
       select: collectionSelect,
@@ -105,10 +104,10 @@ export async function getSidebarCollections(recentLimit: number): Promise<Sideba
   };
 }
 
-export async function getCollectionStats(): Promise<CollectionStats> {
+export async function getCollectionStats(userId: string): Promise<CollectionStats> {
   const [collections, favoriteCollections] = await Promise.all([
-    db.collection.count({ where: userScope }),
-    db.collection.count({ where: { ...userScope, isFavorite: true } }),
+    db.collection.count({ where: { userId } }),
+    db.collection.count({ where: { userId, isFavorite: true } }),
   ]);
 
   return { collections, favoriteCollections };

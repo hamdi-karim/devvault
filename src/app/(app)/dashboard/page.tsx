@@ -4,6 +4,7 @@ import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { StatsCards } from "@/components/dashboard/StatsCards";
+import { requireUserId } from "@/lib/auth/session";
 import { getCollectionStats, getRecentCollections } from "@/lib/db/collections";
 import {
   type DashboardItem,
@@ -37,13 +38,14 @@ function ItemGrid({ items }: ItemGridProps) {
 }
 
 export default async function DashboardPage() {
+  const userId = await requireUserId();
   const [recentCollections, collectionStats, pinnedItems, recentItems, itemStats] =
     await Promise.all([
-      getRecentCollections(RECENT_COLLECTIONS_LIMIT),
-      getCollectionStats(),
-      getPinnedItems(),
-      getRecentItems(RECENT_ITEMS_LIMIT),
-      getItemStats(),
+      getRecentCollections(userId, RECENT_COLLECTIONS_LIMIT),
+      getCollectionStats(userId),
+      getPinnedItems(userId),
+      getRecentItems(userId, RECENT_ITEMS_LIMIT),
+      getItemStats(userId),
     ]);
   const stats = { ...itemStats, ...collectionStats };
 

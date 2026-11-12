@@ -1,18 +1,50 @@
-# Current Feature
+# Current Feature: Auth Phase 3 - Sign In, Register & Sign Out UI
 
-<!-- Feature name and short description -->
+Replace the NextAuth default pages with custom sign-in and register pages, and make the sidebar user area show the signed-in user with a sign-out menu.
+
+Spec: `context/features/auth-phase-3-spec.md`
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+### Sign In Page (`/sign-in`)
+
+- Email and password input fields
+- "Sign in with GitHub" button that shows a pending state and is disabled while the OAuth redirect is in progress (prevents double-submits)
+- Link to the register page
+- Form validation and error display
+
+### Register Page (`/register`)
+
+- Name, email, password and confirm password fields
+- Form validation (passwords match, email format)
+- Submits to the existing `POST /api/auth/register`
+- Redirects to sign-in on success
+
+### Bottom of Sidebar
+
+- Display the user avatar (GitHub image or initials fallback)
+- Display the user name
+- Dropdown/up on avatar click with a "Sign out" link
+- Clicking the icon navigates to `/profile`
 
 ## Notes
 
-<!-- Any extra notes -->
+- **Avatar logic**: if the user has `image` (from GitHub) use it; otherwise generate initials from the name (e.g. "Brad Traversy" → "BT").
+- **Initials component**: create a reusable avatar component that handles both cases.
+- NextAuth must be pointed at the custom pages (`pages.signIn`) so protected-route redirects land on `/sign-in` instead of `/api/auth/signin`.
+- The sidebar user area is the last place still using mock data (`currentUser` in `src/lib/mock-data.ts`); it should read from the session instead.
+- Testing checklist from the spec:
+  1. Go to `/sign-in` and verify the custom page renders
+  2. Sign in with GitHub and verify the flow works
+  3. Sign in with email/password and verify the flow works
+  4. Verify the avatar shows (GitHub image or initials)
+  5. Click the avatar and verify the dropdown appears
+  6. Click "Sign out" and verify logout and redirect
+  7. Go to `/register`, create a new account and verify the redirect to sign-in
 
 ## History
 

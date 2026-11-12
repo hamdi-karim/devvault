@@ -1,7 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { SYSTEM_ITEM_TYPES } from "@/lib/constants/item-types";
 import { db } from "@/lib/db";
-import { userScope } from "@/lib/db/scope";
 
 export interface DashboardItemType {
   slug: string;
@@ -67,9 +66,9 @@ function toDashboardItem({ lastUsedAt, updatedAt, tags, ...item }: SelectedItem)
   };
 }
 
-export async function getPinnedItems(): Promise<DashboardItem[]> {
+export async function getPinnedItems(userId: string): Promise<DashboardItem[]> {
   const items = await db.item.findMany({
-    where: { ...userScope, isPinned: true },
+    where: { userId, isPinned: true },
     orderBy: recentFirst,
     select: itemSelect,
   });
@@ -77,9 +76,9 @@ export async function getPinnedItems(): Promise<DashboardItem[]> {
   return items.map(toDashboardItem);
 }
 
-export async function getRecentItems(limit: number): Promise<DashboardItem[]> {
+export async function getRecentItems(userId: string, limit: number): Promise<DashboardItem[]> {
   const items = await db.item.findMany({
-    where: userScope,
+    where: { userId },
     orderBy: recentFirst,
     take: limit,
     select: itemSelect,
@@ -89,7 +88,7 @@ export async function getRecentItems(limit: number): Promise<DashboardItem[]> {
 }
 
 // System item types in their seeded order, with the user's item count for each.
-export async function getSystemItemTypes(): Promise<SidebarItemType[]> {
+export async function getSystemItemTypes(userId: string): Promise<SidebarItemType[]> {
   const types = await db.itemType.findMany({
     where: { isSystem: true },
     select: {
@@ -98,7 +97,7 @@ export async function getSystemItemTypes(): Promise<SidebarItemType[]> {
       name: true,
       icon: true,
       color: true,
-      _count: { select: { items: { where: userScope } } },
+      _count: { select: { items: { where: { userId } } } },
     },
   });
 
@@ -113,10 +112,10 @@ export async function getSystemItemTypes(): Promise<SidebarItemType[]> {
     .sort((a, b) => order.indexOf(a.slug) - order.indexOf(b.slug));
 }
 
-export async function getItemStats(): Promise<ItemStats> {
+export async function getItemStats(userId: string): Promise<ItemStats> {
   const [items, favoriteItems] = await Promise.all([
-    db.item.count({ where: userScope }),
-    db.item.count({ where: { ...userScope, isFavorite: true } }),
+    db.item.count({ where: { userId } }),
+    db.item.count({ where: { userId, isFavorite: true } }),
   ]);
 
   return { items, favoriteItems };

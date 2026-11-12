@@ -15,6 +15,19 @@ export function formatRelativeTime(date: string, now: number = Date.now()): stri
   return "now";
 }
 
+// Up to two initials from a display name, e.g. "Brad Traversy" → "BT"; "?" when empty.
+export function getInitials(name: string | null | undefined): string {
+  const initials = (name ?? "")
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return initials || "?";
+}
+
 // e.g. "1 item", "3 items".
 export function pluralize(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Star, Vault } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserMenu } from "@/components/layout/UserMenu";
 import {
   Sidebar,
   SidebarContent,
@@ -23,24 +23,16 @@ import {
 import type { DashboardCollection, SidebarCollections } from "@/lib/db/collections";
 import type { SidebarItemType } from "@/lib/db/items";
 import { getItemTypeIcon } from "@/lib/item-type-icons";
-import { currentUser } from "@/lib/mock-data";
+import type { CurrentUser } from "@/lib/db/users";
 import { typeColorVar } from "@/lib/type-color";
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
 interface AppSidebarProps {
+  user: CurrentUser;
   itemTypes: SidebarItemType[];
   collections: SidebarCollections;
 }
 
-export function AppSidebar({ itemTypes, collections }: AppSidebarProps) {
+export function AppSidebar({ user, itemTypes, collections }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -56,13 +48,13 @@ export function AppSidebar({ itemTypes, collections }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <TypesGroup itemTypes={itemTypes} />
+        <TypesGroup itemTypes={itemTypes} isPro={user.isPro} />
         <CollectionsGroup label="Favorite collections" collections={collections.favorites} />
         <CollectionsGroup label="Recent collections" collections={collections.recents} />
         <ViewAllCollections />
       </SidebarContent>
       <SidebarFooter>
-        <UserMenu />
+        <UserMenu user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
@@ -71,9 +63,10 @@ export function AppSidebar({ itemTypes, collections }: AppSidebarProps) {
 
 interface TypesGroupProps {
   itemTypes: SidebarItemType[];
+  isPro: boolean;
 }
 
-function TypesGroup({ itemTypes }: TypesGroupProps) {
+function TypesGroup({ itemTypes, isPro }: TypesGroupProps) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
 
@@ -85,7 +78,7 @@ function TypesGroup({ itemTypes }: TypesGroupProps) {
           {itemTypes.map((type) => {
             const Icon = getItemTypeIcon(type.icon);
             const href = `/items/${type.slug}`;
-            const isLocked = type.proOnly && !currentUser.isPro;
+            const isLocked = type.proOnly && !isPro;
 
             return (
               <SidebarMenuItem key={type.id}>
@@ -181,24 +174,5 @@ function ViewAllCollections() {
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
-  );
-}
-
-function UserMenu() {
-  return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <SidebarMenuButton size="lg" tooltip={currentUser.name}>
-          <Avatar className="rounded-lg after:rounded-lg">
-            {currentUser.image && <AvatarImage src={currentUser.image} alt={currentUser.name} />}
-            <AvatarFallback className="rounded-lg">{getInitials(currentUser.name)}</AvatarFallback>
-          </Avatar>
-          <span className="grid min-w-0 flex-1 text-left leading-tight">
-            <span className="truncate font-medium">{currentUser.name}</span>
-            <span className="truncate text-xs text-muted-foreground">{currentUser.email}</span>
-          </span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    </SidebarMenu>
   );
 }
