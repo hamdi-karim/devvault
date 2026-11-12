@@ -1,18 +1,34 @@
-# Current Feature
+# Current Feature: Auth Phase 2 - Email/Password Credentials Provider
 
-<!-- Feature name and short description -->
+Add the Auth.js Credentials provider for email/password sign-in, plus a registration API route.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In Progress (implemented and tested, awaiting commit)
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- Credentials provider added to `src/auth.config.ts` as an edge-safe placeholder (`authorize: () => null`)
+- `src/auth.ts` overrides the Credentials provider with real validation: look up the user by email and compare the password with bcryptjs
+- `User.password` field available (already in the schema, so no migration needed)
+- `POST /api/auth/register` accepts `name`, `email`, `password`, `confirmPassword`:
+  - validates input and that the passwords match
+  - rejects an email that already exists
+  - hashes the password with bcryptjs and creates the user
+  - returns a success/error JSON response with suitable status codes
+- Signing in with email/password at `/api/auth/signin` redirects to `/dashboard`
+- GitHub OAuth keeps working
 
 ## Notes
 
-<!-- Any extra notes -->
+- Spec: `context/features/auth-phase-2-spec.md`. Reference: https://authjs.dev/getting-started/authentication/credentials
+- Split pattern: `auth.config.ts` stays free of Prisma/bcrypt so `src/proxy.ts` remains edge-compatible; only `auth.ts` imports them.
+- Credentials requires JWT sessions, which are already configured in Phase 1.
+- `password` is already a nullable column on `User` (`prisma/schema.prisma:30`), so OAuth-only users have no password and must be rejected by `authorize`.
+- Seeded demo user uses 12 bcrypt rounds; registration should match.
+- Coding standards require Zod validation, but `zod` isn't installed yet; it needs adding.
+- Test: register via curl (see spec), sign in at `/api/auth/signin`, confirm redirect to `/dashboard`, then confirm GitHub sign-in still works.
+- Custom sign-in/register pages are Phase 3.
 
 ## History
 

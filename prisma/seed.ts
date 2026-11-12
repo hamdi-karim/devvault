@@ -2,9 +2,8 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { db } from "../src/lib/db";
 import { SYSTEM_ITEM_TYPES } from "../src/lib/constants/item-types";
+import { BCRYPT_ROUNDS } from "../src/lib/constants/auth";
 import { DEMO_COLLECTIONS, DEMO_USER } from "./seed-data";
-
-const BCRYPT_ROUNDS = 12;
 
 // Idempotent: system types are matched by slug (userId = null), so re-running updates them in place.
 // Prisma can't upsert on the [userId, slug] compound key when userId is null, hence find + update/create.
