@@ -1,18 +1,35 @@
-# Current Feature
+# Current Feature: Auth Phase 1 - NextAuth + GitHub Provider
 
-<!-- Feature name and short description -->
+Set up Auth.js v5 (NextAuth) with the Prisma adapter and GitHub OAuth, using NextAuth's default pages for testing.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- Install `next-auth@beta` (v5) and `@auth/prisma-adapter`
+- Split auth config for edge compatibility:
+  - `src/auth.config.ts`: edge-compatible config (providers only, no adapter)
+  - `src/auth.ts`: full config with Prisma adapter and `session: { strategy: 'jwt' }`
+- Add the GitHub OAuth provider
+- `src/app/api/auth/[...nextauth]/route.ts` exports the handlers from `auth.ts`
+- `src/proxy.ts` protects `/dashboard/*` and redirects unauthenticated users to sign-in
+- `src/types/next-auth.d.ts` extends the `Session` type with `user.id`
 
 ## Notes
 
-<!-- Any extra notes -->
+- Use Context7 to verify the current Auth.js v5 and Next.js 16 conventions before writing the config.
+- Use `next-auth@beta`, not `@latest` (which installs v4).
+- `src/proxy.ts` sits at the same level as `app/` and uses the named export `export const proxy = auth(...)`, not a default export.
+- Don't set a custom `pages.signIn`. NextAuth's default sign-in page is used until Phase 3.
+- Env vars `AUTH_SECRET`, `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are already set in `.env` and documented in `.env.example`. The GitHub OAuth App's redirect URI is `http://localhost:3000/api/auth/callback/github`.
+- Test plan:
+  1. Visit `/dashboard` and confirm it redirects to sign-in.
+  2. Click "Sign in with GitHub".
+  3. Confirm you land back on `/dashboard` after signing in.
+- References: https://authjs.dev/getting-started/installation#edge-compatibility, https://authjs.dev/getting-started/adapters/prisma
+- Spec: `context/features/auth-phase-1-spec.md`
 
 ## History
 
