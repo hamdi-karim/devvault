@@ -1,35 +1,18 @@
-# Current Feature: Auth Phase 1 - NextAuth + GitHub Provider
+# Current Feature
 
-Set up Auth.js v5 (NextAuth) with the Prisma adapter and GitHub OAuth, using NextAuth's default pages for testing.
+<!-- Feature name and short description -->
 
 ## Feature Status
 
-In Progress
+<!-- Not started | In progress | Completed -->
 
 ## Goals
 
-- Install `next-auth@beta` (v5) and `@auth/prisma-adapter`
-- Split auth config for edge compatibility:
-  - `src/auth.config.ts`: edge-compatible config (providers only, no adapter)
-  - `src/auth.ts`: full config with Prisma adapter and `session: { strategy: 'jwt' }`
-- Add the GitHub OAuth provider
-- `src/app/api/auth/[...nextauth]/route.ts` exports the handlers from `auth.ts`
-- `src/proxy.ts` protects `/dashboard/*` and redirects unauthenticated users to sign-in
-- `src/types/next-auth.d.ts` extends the `Session` type with `user.id`
+<!-- Goals and Requirements -->
 
 ## Notes
 
-- Use Context7 to verify the current Auth.js v5 and Next.js 16 conventions before writing the config.
-- Use `next-auth@beta`, not `@latest` (which installs v4).
-- `src/proxy.ts` sits at the same level as `app/` and uses the named export `export const proxy = auth(...)`, not a default export.
-- Don't set a custom `pages.signIn`. NextAuth's default sign-in page is used until Phase 3.
-- Env vars `AUTH_SECRET`, `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are already set in `.env` and documented in `.env.example`. The GitHub OAuth App's redirect URI is `http://localhost:3000/api/auth/callback/github`.
-- Test plan:
-  1. Visit `/dashboard` and confirm it redirects to sign-in.
-  2. Click "Sign in with GitHub".
-  3. Confirm you land back on `/dashboard` after signing in.
-- References: https://authjs.dev/getting-started/installation#edge-compatibility, https://authjs.dev/getting-started/adapters/prisma
-- Spec: `context/features/auth-phase-1-spec.md`
+<!-- Any extra notes -->
 
 ## History
 
@@ -46,3 +29,4 @@ In Progress
 - **Stats & Sidebar from Database** (Completed): Sidebar item types and collections now load from Neon via Prisma. `getSystemItemTypes` (`src/lib/db/items.ts`) returns the system types in seeded order with per-type item counts in one query (PRO lock from `SYSTEM_ITEM_TYPES`); `getSidebarCollections` (`src/lib/db/collections.ts`) returns favorites (star icon) and the 5 most recently updated non-favorites (dot colored by most-used type), sharing the select/mapping with `getRecentCollections`. The dashboard layout fetches both and passes them to `AppSidebar` as props; added a "View all collections" link to `/collections`. Main-area stats were already database-backed. Removed the unused mock helper `src/lib/collections.ts`; only the sidebar user area still uses mock data.
 - **Topbar New Button** (Completed): The top bar "New" button is now a blue → violet gradient button (`rounded-xl`, matching the search input height) that opens a dropdown with "New item" (`FilePlus`) and "New collection" (`FolderPlus`); the chevron flips while open and on mobile only the `+` icon shows. Built as the client component `src/components/layout/NewMenu.tsx` on the shadcn `DropdownMenu` (Base UI `Menu`, added via the CLI), so `TopBar` stays a server component. Menu options are placeholders until the item drawer and collection form exist.
 - **Code Scan Quick Wins** (Completed): Low-risk cleanups from the new `code-scanner` subagent's report (`.claude/agents/code-scanner.md`). Collection cards now say "1 item" instead of "1 items" via a shared `pluralize` in `src/lib/format.ts`; `src/lib/mock-data.ts` is trimmed to `currentUser`; `StatsCards`, `ItemPreview`, `ItemGrid` and `TypesGroup` got named `*Props` interfaces; the leftover `groupCollections` rename is gone; `SIDEBAR_COOKIE_NAME` moved to `src/lib/constants/sidebar.ts` and is shared by the client sidebar and the server layout (it can't be exported from the `"use client"` `sidebar.tsx`); and `coding-standards.md` now allows `style={typeColorVar(...)}`. Switching `ItemCard` to `getItemTypeIcon` was dropped because it trips the `react-hooks/static-components` lint rule. Larger findings (DB-side collection type counts, trimming item content and capping pinned items, splitting `AppSidebar`, redundant `userId` indexes, seed transaction, demo password env var) are left for future features.
+- **Auth Phase 1 - NextAuth + GitHub Provider** (Completed): Auth.js v5 (`next-auth@beta`) with the Prisma adapter, JWT sessions and GitHub OAuth, using NextAuth's default pages. Config is split for edge compatibility: `src/auth.config.ts` (providers only) is used by `src/proxy.ts`, which protects `/dashboard/*` and redirects signed-out users to `/api/auth/signin` with a `callbackUrl`; `src/auth.ts` adds the adapter and `jwt`/`session` callbacks that expose `session.user.id` (typed in `src/types/next-auth.d.ts`). Handlers are served from `src/app/api/auth/[...nextauth]/route.ts`; auth env vars documented in `.env.example`. Phase 3 spec now requires a pending/disabled GitHub button, since the default page gives no feedback during the slow localhost callback and repeated clicks restart the OAuth flow.
