@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-const email = z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address"));
+export const emailSchema = z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address"));
+const email = emailSchema;
+
+export const resendVerificationSchema = z.object({ email });
+
+export const verifyEmailSchema = z.object({
+  email,
+  token: z.string().regex(/^[a-f0-9]{64}$/),
+});
 
 export const signInSchema = z.object({
   email,

@@ -9,8 +9,10 @@ import { useState } from "react";
 import { FormAlert } from "@/components/auth/FormAlert";
 import { FormField } from "@/components/auth/FormField";
 import { GitHubIcon } from "@/components/auth/GitHubIcon";
+import { ResendVerificationButton } from "@/components/auth/ResendVerificationButton";
 import { Button } from "@/components/ui/button";
 import { safeCallbackUrl } from "@/lib/auth/callback-url";
+import { EMAIL_NOT_VERIFIED_CODE } from "@/lib/constants/auth";
 import { signInSchema } from "@/lib/validations/auth";
 import { type FieldErrors, zodFieldErrors } from "@/lib/validations/form";
 
@@ -20,18 +22,27 @@ type Pending = "credentials" | "github" | null;
 interface SignInFormProps {
   callbackUrl?: string;
   registered?: boolean;
+  verified?: boolean;
   error?: string;
 }
 
 const OAUTH_ERROR = "Could not sign in with GitHub. Please try again.";
 const CREDENTIALS_ERROR = "Invalid email or password.";
+const INVALID_LINK_ERROR = "This verification link is invalid or has expired. Sign in to request a new one.";
 
-export function SignInForm({ callbackUrl, registered, error }: SignInFormProps) {
+// Errors arriving via the `error` query param: our verify route, otherwise the GitHub OAuth flow.
+function initialError(error?: string): string | null {
+  if (!error) return null;
+  return error === "InvalidVerificationLink" ? INVALID_LINK_ERROR : OAUTH_ERROR;
+}
+
+export function SignInForm({ callbackUrl, registered, verified, error }: SignInFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors<SignInField>>({});
-  const [formError, setFormError] = useState<string | null>(error ? OAUTH_ERROR : null);
+  const [formError, setFormError] = useState<string | null>(initialError(error));
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending>(null);
 
   const disabled = pending !== null;
@@ -39,6 +50,7 @@ export function SignInForm({ callbackUrl, registered, error }: SignInFormProps) 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
+    setUnverifiedEmail(null);
 
     const parsed = signInSchema.safeParse({ email, password });
     if (!parsed.success) {
@@ -48,20 +60,24 @@ export function SignInForm({ callbackUrl, registered, error }: SignInFormProps) 
     setFieldErrors({});
     setPending("credentials");
 
-    const result = await signIn("credentials", { ...parsed.data, redirect: false });
+    // Explicit redirectTo: signIn() reads `error` from the returned URL, which otherwise defaults to the
+    // current page and would misreport success when this page has `?error=...` (e.g. an expired link).
+    const redirectTo = safeCallbackUrl(callbackUrl, window.location.origin);
+    const result = await signIn("credentials", { ...parsed.data, redirect: false, redirectTo });
     if (result?.error) {
-      setFormError(CREDENTIALS_ERROR);
+      if (result.code === EMAIL_NOT_VERIFIED_CODE) setUnverifiedEmail(parsed.data.email);
+      else setFormError(CREDENTIALS_ERROR);
       setPending(null);
       return;
     }
 
-    const redirectTo = safeCallbackUrl(callbackUrl, window.location.origin);
     router.push(redirectTo);
     router.refresh();
   }
 
   function handleGitHub() {
     setFormError(null);
+    setUnverifiedEmail(null);
     setPending("github");
     // Navigates away; the pending state stays until the OAuth redirect happens.
     void signIn("github", {
@@ -71,10 +87,21 @@ export function SignInForm({ callbackUrl, registered, error }: SignInFormProps) 
 
   return (
     <div className="grid gap-5">
-      {registered && !formError && (
-        <FormAlert variant="success">Account created. Sign in to continue.</FormAlert>
+      {registered && !formError && !unverifiedEmail && (
+        <FormAlert variant="success">Account created. Check your email for a verification link.</FormAlert>
+      )}
+      {verified && !formError && !unverifiedEmail && (
+        <FormAlert variant="success">Email verified. You can sign in now.</FormAlert>
       )}
       {formError && <FormAlert variant="error">{formError}</FormAlert>}
+      {unverifiedEmail && (
+        <FormAlert variant="error">
+          <span className="grid gap-1">
+            Please verify your email before signing in.
+            <ResendVerificationButton key={unverifiedEmail} email={unverifiedEmail} />
+          </span>
+        </FormAlert>
+      )}
 
       <Button
         type="button"

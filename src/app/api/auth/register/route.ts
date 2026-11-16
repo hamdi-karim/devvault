@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 import { BCRYPT_ROUNDS } from "@/lib/constants/auth";
+import { issueVerificationEmail } from "@/lib/auth/verification";
 import { registerSchema } from "@/lib/validations/auth";
 
 const EMAIL_TAKEN = "An account with this email already exists";
@@ -34,6 +35,14 @@ export async function POST(request: Request) {
       data: { name, email, password: await bcrypt.hash(password, BCRYPT_ROUNDS) },
       select: { id: true, name: true, email: true },
     });
+
+    // Sent after the response so a slow or unreachable email API doesn't hold up the form.
+    // A failed send is logged, not fatal: the user can request a new link from the sign-in page.
+    after(() =>
+      issueVerificationEmail(user.email).catch((error: unknown) =>
+        console.error("Failed to issue verification email", error),
+      ),
+    );
 
     return NextResponse.json({ success: true, data: user, error: null }, { status: 201 });
   } catch (error) {

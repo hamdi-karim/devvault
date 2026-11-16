@@ -1,18 +1,33 @@
-# Current Feature
+# Current Feature: Email Verification on Register
 
-<!-- Feature name and short description -->
+Users who register with email/password must verify their address by clicking a link emailed via Resend before they can sign in.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- Registering creates the user with `emailVerified = null`, stores a verification token and sends a verification email through Resend (`resend` package, `RESEND_API_KEY`)
+- Email contains a link to `/api/auth/verify-email?token=...&email=...` (absolute URL built from an `APP_URL` env var)
+- Tokens use the existing Auth.js `VerificationToken` model (no migration): random 32-byte token, stored as a SHA-256 hash, expires after 24h, single use (deleted on use); an older token for the same email is replaced
+- Verify route: a valid token sets `User.emailVerified` and redirects to `/sign-in?verified=1`; an invalid or expired token redirects to `/sign-in?error=InvalidVerificationLink`
+- Credentials sign-in rejects unverified users with a custom `CredentialsSignin` subclass (`code = "email_not_verified"`); the sign-in form shows "Please verify your email" plus a "Resend verification email" action
+- `POST /api/auth/resend-verification` sends a new link; it always returns the same generic success response (no account enumeration) and does nothing for verified or unknown emails
+- After registering, the user sees a "Check your email" message instead of the old `registered=1` banner
+- GitHub OAuth users are unaffected (the check applies only to credentials sign-in)
+- Seeded demo user gets `emailVerified` set so it can still sign in
 
 ## Notes
 
-<!-- Any extra notes -->
+- Resend helper in `src/lib/email/` (client + `sendVerificationEmail`), using plain HTML/text (no React Email dependency). Handle the `{ data, error }` response from `resend.emails.send` and log failures; registration still succeeds if sending fails, since the user can resend
+- New env vars: `RESEND_API_KEY`, `EMAIL_FROM` (default `DevVault <onboarding@resend.dev>`), `APP_URL`; document them in `.env.example` and add them in the Vercel dashboard for production
+- Resend's `onboarding@resend.dev` sender only delivers to the Resend account owner's email. Sending to other addresses needs a verified domain
+- Existing credentials users already in the dev DB have `emailVerified = null` and will be locked out until they verify (use resend) or get backfilled
+- Token logic in `src/lib/auth/verification.ts` (create/consume); reuse `registerSchema`'s `email` normaliser in `src/lib/validations/auth.ts`, plus `FormAlert` and `SignInForm`
+- Follows the `{ success, data, error }` response pattern from `src/app/api/auth/register/route.ts`
+- Verify with Playwright against `npm run dev` only (never `next start`): register → email received → click link → sign in; unverified sign-in error; resend; expired/reused token
+- This reduces fake signups but doesn't stop one person using many real or disposable addresses (rate limiting and disposable-domain blocking would be separate follow-ups)
 
 ## History
 
