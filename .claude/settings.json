@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(curl -s -X POST localhost:3000/api/auth/resend-verification -H 'content-type: application/json' -d '{\"email\":\"nobody@example.com\"}')",
+      "Bash(curl -s -c /dev/null localhost:3000/api/auth/csrf)",
+      "mcp__playwright__browser_network_request",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" https://api.resend.com/)",
+      "Bash(echo \"exit $?\")",
+      "Bash(python3 -c 'import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\([{k:e.get\\(k\\) for k in \\(\"to\",\"from\",\"last_event\",\"created_at\"\\)} for e in d.get\\(\"data\",[]\\)] if \"data\" in d else d, indent=1\\)\\)')",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -o /dev/null -m 15 -w \"direct curl: %{http_code} connect=%{time_connect}s ip=%{remote_ip}\\\\n\" https://api.resend.com/)",
+      "Bash(curl -s -o /dev/null -m 15 -w \"google: %{http_code} connect=%{time_connect}s\\\\n\" https://www.google.com/)",
+      "Bash(curl -4 -s -o /dev/null -m 15 -w \"resend alt ip: %{http_code}\\\\n\" --resolve api.resend.com:443:172.66.165.132 https://api.resend.com/)",
+      "Bash(scutil --proxy)",
+      "Bash(curl -4 -s -o /dev/null -m 12 -w \"104.20.29.242: %{http_code}\\\\n\" --resolve api.resend.com:443:104.20.29.242 https://api.resend.com/)",
+      "Bash(route -n get 104.20.29.242)",
+      "Bash(route -n get 172.66.165.132)",
+      "Bash(curl -4 -s -o /dev/null -m 12 -w \"curl -4: %{http_code} %{time_total}s ip=%{remote_ip}\\\\n\" https://api.resend.com/)",
+      "Bash(curl -6 -s -o /dev/null -m 12 -w \"curl -6: %{http_code} %{time_total}s ip=%{remote_ip}\\\\n\" https://api.resend.com/)",
+      "Bash(dig +short AAAA api.resend.com)",
+      "Bash(ps -axo comm)",
+      "Read(//private/etc/**)",
+      "Bash(dscacheutil -q host -a name api.resend.com)",
+      "Bash(dig +short api.resend.com)",
+      "Bash(dig +short resend.com)",
+      "Bash(scutil --dns)",
+      "Bash(curl -v -s -o /dev/null -m 8 https://api.resend.com/)",
+      "Bash(curl -v -s -o /dev/null -m 10 https://api.resend.com/)"
+    ],
+    "additionalDirectories": [
+      "/Users/karimhamdi/workspace/github.com/hamdi-karim/devvault/context"
+    ]
+  }
+}
