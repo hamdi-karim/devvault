@@ -16,6 +16,7 @@ type RegisterValues = Record<RegisterField, string>;
 
 interface RegisterResponse {
   success: boolean;
+  data: { emailSent: boolean } | null;
   error: string | null;
 }
 
@@ -55,7 +56,7 @@ export function RegisterForm() {
       const body = (await response.json()) as RegisterResponse;
 
       if (response.status === 201 && body.success) {
-        router.push("/sign-in?registered=1");
+        router.push(body.data?.emailSent ? "/sign-in?registered=1" : "/sign-in?registered=email-failed");
         return;
       }
 

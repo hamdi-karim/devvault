@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { SignInForm } from "@/components/auth/SignInForm";
+import { type RegisteredStatus, SignInForm } from "@/components/auth/SignInForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = {
@@ -15,6 +15,12 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function registeredStatus(value: string | undefined): RegisteredStatus | undefined {
+  if (value === "1") return "email-sent";
+  if (value === "email-failed") return "email-failed";
+  return undefined;
+}
+
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const params = await searchParams;
 
@@ -27,7 +33,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       <CardContent>
         <SignInForm
           callbackUrl={first(params.callbackUrl)}
-          registered={first(params.registered) === "1"}
+          registered={registeredStatus(first(params.registered))}
           verified={first(params.verified) === "1"}
           error={first(params.error)}
         />

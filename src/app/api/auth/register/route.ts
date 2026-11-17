@@ -1,4 +1,4 @@
-import { after, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
@@ -36,15 +36,14 @@ export async function POST(request: Request) {
       select: { id: true, name: true, email: true },
     });
 
-    // Sent after the response so a slow or unreachable email API doesn't hold up the form.
-    // A failed send is logged, not fatal: the user can request a new link from the sign-in page.
-    after(() =>
-      issueVerificationEmail(user.email).catch((error: unknown) =>
-        console.error("Failed to issue verification email", error),
-      ),
-    );
+    // Awaited so the UI can tell the user when the email didn't go out. A failed send isn't fatal:
+    // the account exists and a new link can be requested from the sign-in page.
+    const emailSent = await issueVerificationEmail(user.email).catch((error: unknown) => {
+      console.error("Failed to issue verification email", error);
+      return false;
+    });
 
-    return NextResponse.json({ success: true, data: user, error: null }, { status: 201 });
+    return NextResponse.json({ success: true, data: { ...user, emailSent }, error: null }, { status: 201 });
   } catch (error) {
     // A concurrent registration can still hit the unique email constraint.
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

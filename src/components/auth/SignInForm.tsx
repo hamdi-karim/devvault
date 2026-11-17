@@ -19,9 +19,11 @@ import { type FieldErrors, zodFieldErrors } from "@/lib/validations/form";
 type SignInField = "email" | "password";
 type Pending = "credentials" | "github" | null;
 
+export type RegisteredStatus = "email-sent" | "email-failed";
+
 interface SignInFormProps {
   callbackUrl?: string;
-  registered?: boolean;
+  registered?: RegisteredStatus;
   verified?: boolean;
   error?: string;
 }
@@ -87,8 +89,13 @@ export function SignInForm({ callbackUrl, registered, verified, error }: SignInF
 
   return (
     <div className="grid gap-5">
-      {registered && !formError && !unverifiedEmail && (
+      {registered === "email-sent" && !formError && !unverifiedEmail && (
         <FormAlert variant="success">Account created. Check your email for a verification link.</FormAlert>
+      )}
+      {registered === "email-failed" && !formError && !unverifiedEmail && (
+        <FormAlert variant="error">
+          Account created, but we couldn&apos;t send the verification email. Sign in to request a new link.
+        </FormAlert>
       )}
       {verified && !formError && !unverifiedEmail && (
         <FormAlert variant="success">Email verified. You can sign in now.</FormAlert>
