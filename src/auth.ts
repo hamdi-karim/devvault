@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { signInSchema } from "@/lib/validations/auth";
 import { EMAIL_NOT_VERIFIED_CODE } from "@/lib/constants/auth";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
 import authConfig from "./auth.config";
 
 // Surfaces as `result.code` from the client signIn() so the form can offer a new verification link.
@@ -28,7 +29,7 @@ const credentialsProvider = Credentials({
     if (!valid) return null;
 
     // Checked after the password so it doesn't reveal which emails are registered.
-    if (!user.emailVerified) throw new EmailNotVerifiedError();
+    if (isEmailVerificationEnabled() && !user.emailVerified) throw new EmailNotVerifiedError();
 
     return { id: user.id, name: user.name, email: user.email, image: user.image };
   },

@@ -16,6 +16,7 @@ function first(value: string | string[] | undefined): string | undefined {
 }
 
 function registeredStatus(value: string | undefined): RegisteredStatus | undefined {
+  if (value === "created") return "created";
   if (value === "1") return "email-sent";
   if (value === "email-failed") return "email-failed";
   return undefined;

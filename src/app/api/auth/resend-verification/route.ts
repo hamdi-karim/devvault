@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
+import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
 import { canResendVerification, issueVerificationEmail } from "@/lib/auth/verification";
 import { resendVerificationSchema } from "@/lib/validations/auth";
 
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
 }
 
 async function resendIfNeeded(email: string) {
+  if (!isEmailVerificationEnabled()) return;
   try {
     const user = await db.user.findUnique({
       where: { email },

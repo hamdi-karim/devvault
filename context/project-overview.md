@@ -596,6 +596,7 @@ STRIPE_PRICE_YEARLY=
 
 # Feature flags
 ENFORCE_PRO_LIMITS=false   # false during development: everyone gets Pro features
+EMAIL_VERIFICATION_ENABLED=true   # "false" skips email verification (e.g. no verified Resend domain yet)
 ```
 
 ---

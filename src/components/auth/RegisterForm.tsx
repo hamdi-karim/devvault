@@ -16,8 +16,14 @@ type RegisterValues = Record<RegisterField, string>;
 
 interface RegisterResponse {
   success: boolean;
-  data: { emailSent: boolean } | null;
+  data: { emailSent: boolean; verificationRequired: boolean } | null;
   error: string | null;
+}
+
+// Banner to show on /sign-in: no verification needed, link sent, or the email failed.
+function registeredParam(data: RegisterResponse["data"]): string {
+  if (data?.verificationRequired === false) return "created";
+  return data?.emailSent ? "1" : "email-failed";
 }
 
 const EMPTY_VALUES: RegisterValues = { name: "", email: "", password: "", confirmPassword: "" };
@@ -56,7 +62,7 @@ export function RegisterForm() {
       const body = (await response.json()) as RegisterResponse;
 
       if (response.status === 201 && body.success) {
-        router.push(body.data?.emailSent ? "/sign-in?registered=1" : "/sign-in?registered=email-failed");
+        router.push(`/sign-in?registered=${registeredParam(body.data)}`);
         return;
       }
 

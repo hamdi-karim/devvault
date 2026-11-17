@@ -1,18 +1,28 @@
-# Current Feature
+# Current Feature: Email Verification Toggle
 
-<!-- Feature name and short description -->
+Add an `EMAIL_VERIFICATION_ENABLED` env flag to switch the email verification requirement off while Resend has no verified domain (the `onboarding@resend.dev` test sender only delivers to the Resend account owner), and back on later without code changes.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- New server-only helper `isEmailVerificationEnabled()` in `src/lib/auth/email-verification.ts`: verification stays **on unless the var is exactly `"false"`**, so leaving it unset keeps the current behaviour.
+- Sign-in (`src/auth.ts`): throw `EmailNotVerifiedError` only when the flag is on. While it's off, existing unverified users can sign in too.
+- Register (`POST /api/auth/register`): when the flag is off, skip `issueVerificationEmail` and return `verificationRequired: false` in `data`.
+- `RegisterForm`: when no verification is needed, redirect to `/sign-in?registered=created`.
+- Sign-in page/form: new `"created"` `RegisteredStatus` with a success alert, "Account created. You can sign in now."
+- `POST /api/auth/resend-verification`: send nothing while the flag is off, but keep the same uniform 200 response.
+- Document `EMAIL_VERIFICATION_ENABLED` in `.env.example` (Resend block) and the env var list in `context/project-overview.md`.
 
 ## Notes
 
-<!-- Any extra notes -->
+- Env var rather than a DB/admin toggle: it's a temporary switch, set per environment, and needs no migration. It follows the `ENFORCE_PRO_LIMITS` pattern.
+- `emailVerified` stays `null` for users created while the flag is off, so we never mark an address as verified when it isn't. If the flag is turned back on, those users must verify via the existing resend button.
+- The verify-email route and the token logic don't change, and GitHub OAuth isn't affected.
+- Prod: set `EMAIL_VERIFICATION_ENABLED=false` in the Vercel dashboard (Production) and redeploy. There's no Vercel CLI locally.
+- Verify only against `npm run dev` (never `next start`), with the flag both off and on; clean up test users with `npm run db:prune-users`.
 
 ## History
 
