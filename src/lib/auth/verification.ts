@@ -1,31 +1,12 @@
-import { createHash, randomBytes } from "node:crypto";
-
 import { db } from "@/lib/db";
-import { VERIFICATION_RESEND_COOLDOWN_MS, VERIFICATION_TOKEN_TTL_MS } from "@/lib/constants/auth";
+import { EMAIL_RESEND_COOLDOWN_MS, VERIFICATION_TOKEN_TTL_MS } from "@/lib/constants/auth";
+import { canIssueToken, createToken, hashToken } from "@/lib/auth/tokens";
 import { getAppUrl } from "@/lib/email/resend";
 import { sendVerificationEmail } from "@/lib/email/verification-email";
 
-// Only the hash is stored, so a database leak doesn't expose usable links.
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
-
-// Replaces any earlier token for this email, so only the newest link works.
-export async function createVerificationToken(email: string): Promise<string> {
-  const token = randomBytes(32).toString("hex");
-
-  await db.$transaction([
-    db.verificationToken.deleteMany({ where: { identifier: email } }),
-    db.verificationToken.create({
-      data: {
-        identifier: email,
-        token: hashToken(token),
-        expires: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
-      },
-    }),
-  ]);
-
-  return token;
+// Verification tokens use the bare email as identifier (password reset tokens are prefixed).
+export function createVerificationToken(email: string): Promise<string> {
+  return createToken(email, VERIFICATION_TOKEN_TTL_MS);
 }
 
 export async function issueVerificationEmail(email: string): Promise<boolean> {
@@ -54,15 +35,6 @@ export async function consumeVerificationToken(email: string, token: string): Pr
   });
 }
 
-// Creation time is derived from `expires`, so no extra column is needed for the cooldown.
-export async function canResendVerification(email: string): Promise<boolean> {
-  const latest = await db.verificationToken.findFirst({
-    where: { identifier: email },
-    orderBy: { expires: "desc" },
-    select: { expires: true },
-  });
-  if (!latest) return true;
-
-  const createdAt = latest.expires.getTime() - VERIFICATION_TOKEN_TTL_MS;
-  return Date.now() - createdAt >= VERIFICATION_RESEND_COOLDOWN_MS;
+export function canResendVerification(email: string): Promise<boolean> {
+  return canIssueToken(email, VERIFICATION_TOKEN_TTL_MS, EMAIL_RESEND_COOLDOWN_MS);
 }

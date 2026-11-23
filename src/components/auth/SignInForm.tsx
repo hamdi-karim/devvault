@@ -25,6 +25,7 @@ interface SignInFormProps {
   callbackUrl?: string;
   registered?: RegisteredStatus;
   verified?: boolean;
+  reset?: boolean;
   error?: string;
 }
 
@@ -38,7 +39,7 @@ function initialError(error?: string): string | null {
   return error === "InvalidVerificationLink" ? INVALID_LINK_ERROR : OAUTH_ERROR;
 }
 
-export function SignInForm({ callbackUrl, registered, verified, error }: SignInFormProps) {
+export function SignInForm({ callbackUrl, registered, verified, reset, error }: SignInFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -103,6 +104,9 @@ export function SignInForm({ callbackUrl, registered, verified, error }: SignInF
       {verified && !formError && !unverifiedEmail && (
         <FormAlert variant="success">Email verified. You can sign in now.</FormAlert>
       )}
+      {reset && !formError && !unverifiedEmail && (
+        <FormAlert variant="success">Password updated. You can sign in now.</FormAlert>
+      )}
       {formError && <FormAlert variant="error">{formError}</FormAlert>}
       {unverifiedEmail && (
         <FormAlert variant="error">
@@ -161,6 +165,14 @@ export function SignInForm({ callbackUrl, registered, verified, error }: SignInF
           onChange={(event) => setPassword(event.target.value)}
           error={fieldErrors.password}
           disabled={disabled}
+          labelAction={
+            <Link
+              href="/forgot-password"
+              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Forgot password?
+            </Link>
+          }
         />
         <Button type="submit" size="lg" className="w-full" disabled={disabled}>
           {pending === "credentials" && <Loader2 className="animate-spin" />}

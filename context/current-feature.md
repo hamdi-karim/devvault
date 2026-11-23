@@ -1,18 +1,32 @@
-# Current Feature
+# Current Feature: Forgot Password
 
-<!-- Feature name and short description -->
+Let email/password users reset a forgotten password through an emailed, single-use link, reusing the email verification setup (token table, Resend, `after()`, form components).
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+Completed
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- "Forgot password?" link on `/sign-in` (next to the Password label) → new public `/forgot-password` page in the `(auth)` group with an email field.
+- `POST /api/auth/forgot-password`: Zod-validated email, **always the same 200**; the work runs in `after()` (like `resend-verification`) so neither response nor timing reveals accounts. Only users with a `password` get a link (OAuth-only users get nothing). 60s per-email cooldown.
+- Email links to `/reset-password?token=…&email=…`. The page checks the token server-side without consuming it: invalid/expired → error + link to request a new one; otherwise new password + confirm fields.
+- `POST /api/auth/reset-password`: re-validates (same rules as register: 8–72 chars, must match), consumes the token in one transaction, hashes with `BCRYPT_ROUNDS`, sets the password and sets `emailVerified` if null (the link proves ownership). 400 on invalid/expired token.
+- On success → `/sign-in?reset=1` with "Password updated. You can sign in now." banner.
+- Tokens: 32 random bytes, SHA-256 hash stored, **1h TTL**, single use, newest replaces older.
 
 ## Notes
 
-<!-- Any extra notes -->
+- **No migration**: reuse the `VerificationToken` table with identifier `password-reset:<email>` (verification tokens keep the bare email), so the two kinds never delete each other.
+- Extract generic token helpers from `src/lib/auth/verification.ts` into `src/lib/auth/tokens.ts` (`hashToken`, `createToken(identifier, ttlMs)`, `canIssueToken(identifier, ttlMs, cooldownMs)`); verification functions keep their names and behavior. Added `createTokenWithCooldown`: cooldown check + token creation in one transaction behind a per-identifier `pg_advisory_xact_lock`, because concurrent requests (double submit) both passed the separate check and sent two links. `resend-verification` still uses the separate check (same pre-existing race, left as a follow-up).
+- New `src/lib/auth/password-reset.ts`: `issuePasswordResetEmail` (enforces the cooldown), `isPasswordResetTokenValid` (read-only, for the page), `resetPassword(email, token, password)` (transaction).
+- New `src/lib/email/password-reset-email.ts` mirroring `verification-email.ts` (returns boolean, logs link outside production); share `escapeHtml` via `src/lib/email/html.ts`.
+- `src/lib/constants/auth.ts`: add `PASSWORD_RESET_TOKEN_TTL_MS` (1h); rename `VERIFICATION_RESEND_COOLDOWN_MS` → `EMAIL_RESEND_COOLDOWN_MS` and reuse it.
+- `src/lib/validations/auth.ts`: `forgotPasswordSchema`, `resetPasswordSchema` (64-hex token); share password rules + match refine with `registerSchema`.
+- UI: client `ForgotPasswordForm` / `ResetPasswordForm` reusing `FormField`, `FormAlert`, `zodFieldErrors`; server pages `src/app/(auth)/forgot-password/page.tsx` and `reset-password/page.tsx`. `SignInForm` gets a `reset` prop + banner (like `verified`) and a "Forgot password?" link via a new optional `labelAction` on `FormField`. No `src/proxy.ts` change.
+- Independent of `EMAIL_VERIFICATION_ENABLED`: reset always sends email. Caveat: prod Resend has no verified domain, so emails only reach the Resend account owner until one is set up; locally use the console-logged link.
+- Out of scope: invalidating existing JWT sessions after reset; letting OAuth-only users add a password.
+- Verify with Playwright on `npm run dev` (never `next start`): happy path + old password fails, reused/tampered link, unknown/OAuth email gets the same message and no link, cooldown, field errors. Check `VerificationToken` rows via Neon MCP on the dev branch only.
 
 ## History
 

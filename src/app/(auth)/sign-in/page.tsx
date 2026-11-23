@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 interface SignInPageProps {
-  searchParams: Promise<{ callbackUrl?: string; registered?: string; verified?: string; error?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; registered?: string; verified?: string; reset?: string; error?: string }>;
 }
 
 function first(value: string | string[] | undefined): string | undefined {
@@ -36,6 +36,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           callbackUrl={first(params.callbackUrl)}
           registered={registeredStatus(first(params.registered))}
           verified={first(params.verified) === "1"}
+          reset={first(params.reset) === "1"}
           error={first(params.error)}
         />
       </CardContent>

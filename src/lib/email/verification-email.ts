@@ -1,10 +1,7 @@
+import { escapeHtml } from "@/lib/email/html";
 import { EMAIL_FROM, getResend } from "@/lib/email/resend";
 
 const SUBJECT = "Verify your DevVault email";
-
-function escapeHtml(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
 
 function buildHtml(url: string): string {
   const href = escapeHtml(url);
