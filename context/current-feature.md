@@ -1,32 +1,18 @@
-# Current Feature: Profile Page
+# Current Feature
 
-Profile page with user info, usage stats, change password and delete account.
+<!-- Feature name and short description -->
 
 ## Feature Status
 
-In progress
+<!-- Not started | In progress | Completed -->
 
 ## Goals
 
-- `/profile` page, available only to signed-in users
-- User info: email, name, avatar (GitHub image or initials) and account creation date
-- Usage stats: total items, total collections and item counts per type (snippets, prompts, notes, commands, links, files, images)
-- Change password, for email/password users only
-- Delete account, with a confirmation dialog
-- Follow existing patterns for data fetching and components
+<!-- Goals and Requirements -->
 
 ## Notes
 
-- Spec: `context/features/profile-spec.md`
-- Avatar: GitHub image if available, otherwise initials from name/email
-- Change password is hidden for GitHub OAuth users
-- Already in place: a minimal `/profile` page (avatar, name, email, plan badge), protected by `src/proxy.ts` and `requireUserId()`
-- Reuse: `UserAvatar`, `getCurrentUser`, `getItemStats`, `getCollectionStats`, `getSystemItemTypes`, `FormField`/`FormAlert`, and the password rules in `src/lib/validations/auth.ts`
-- `getCurrentUser` needs `createdAt` and whether a password is set (a boolean; never the hash)
-- Enforce the change-password restriction on the server too, and require the current password
-- No shadcn dialog component is installed yet
-- Deleting a user cascades to their content, but `VerificationToken` rows have no user relation and need explicit cleanup. `Item.type` is `onDelete: Restrict`, so check the cascade if custom types exist
-- JWT sessions outlive the account, so sign the user out after deletion; other devices' sessions aren't revoked automatically
+<!-- Any extra notes -->
 
 ## History
 
@@ -50,3 +36,4 @@ In progress
 - **Register Email Failure Feedback** (Completed): Registering no longer shows "Check your email" when the verification email failed. `POST /api/auth/register` now awaits `issueVerificationEmail` (instead of `after()`, which ran only after the 201 was sent) and returns `emailSent` in `data`; the account is still created on failure. `RegisterForm` redirects to `/sign-in?registered=email-failed`, where `SignInForm` shows an error alert telling the user to sign in to request a new link (via the existing resend button). Trade-off: registration now waits on the email API. `resend-verification` keeps `after()` and its uniform response to avoid account enumeration. Verified via the dev server (local network can't reach `api.resend.com`, so `emailSent: false`).
 - **Email Verification Toggle** (Completed): New `EMAIL_VERIFICATION_ENABLED` env flag (read by `isEmailVerificationEnabled()` in `src/lib/auth/email-verification.ts`) turns the email verification requirement off while Resend has no verified domain. Verification stays on unless the value is exactly `"false"`. While off: `authorize` in `src/auth.ts` skips the `EmailNotVerifiedError` check (existing unverified users can sign in too), `POST /api/auth/register` sends no email and returns `verificationRequired: false`, `RegisterForm` redirects to `/sign-in?registered=created` (new `"created"` `RegisteredStatus`, "Account created. You can sign in now."), and `resend-verification` sends nothing but keeps its uniform 200. `emailVerified` stays `null`, so turning the flag back on asks those users to verify. Documented in `.env.example` and `context/project-overview.md`; no migration. Verified with Playwright on `npm run dev`: flag off → register, banner, sign-in to `/dashboard` with no email; flag unset → unverified sign-in blocked with the resend button. Prod: set `EMAIL_VERIFICATION_ENABLED=false` (no quotes, not Sensitive) in the Vercel dashboard.
 - **Forgot Password** (Completed): Email/password users can reset a forgotten password via an emailed, single-use link. "Forgot password?" on `/sign-in` (new optional `labelAction` on `FormField`) leads to `/forgot-password`; `POST /api/auth/forgot-password` always returns the same 200 and does the work in `after()`, sending only to users with a `password` (OAuth-only get nothing). Reset tokens reuse the `VerificationToken` table with a `password-reset:<email>` identifier (no migration; 32 random bytes, SHA-256 hashed, 1h TTL, newest replaces older). Shared helpers moved to `src/lib/auth/tokens.ts` (`hashToken`, `createToken`, `canIssueToken`, plus `createTokenWithCooldown`, which checks the 60s cooldown and creates the token in one transaction behind a per-identifier `pg_advisory_xact_lock`, since concurrent requests both passed the separate check and sent two links); `src/lib/auth/password-reset.ts` adds `issuePasswordResetEmail`, `isPasswordResetTokenValid` (read-only check for the page) and `resetPassword` (consumes via `deleteMany` so a concurrent double submit gets a 400 instead of a 500, bcrypt-hashes, sets `emailVerified` if null). `/reset-password` shows an invalid-link state or the new password form (`referrer: "no-referrer"` since the URL carries the token); `POST /api/auth/reset-password` returns 400 for bad/expired links and the user lands on `/sign-in?reset=1` ("Password updated" banner). Also: `src/lib/email/password-reset-email.ts` (link logged outside production), shared `escapeHtml` (`src/lib/email/html.ts`), shared password rules/match refine in `src/lib/validations/auth.ts`, `VERIFICATION_RESEND_COOLDOWN_MS` renamed to `EMAIL_RESEND_COOLDOWN_MS`, new `PASSWORD_RESET_TOKEN_TTL_MS`. Independent of `EMAIL_VERIFICATION_ENABLED`. Verified with Playwright on `npm run dev` (happy path, old password rejected, reused/tampered link, unknown email, cooldown, field errors, concurrent submits) and a real Resend send to `delivered@resend.dev`. Notes: this Mac's network intermittently can't connect to `api.resend.com` (IPv4 and IPv6), so use the console-logged link locally; production only delivers to the Resend account owner until a domain is verified. Follow-ups: same double-send race in `resend-verification`; sessions aren't invalidated after a reset.
+- **Profile Page** (Completed): `/profile` now shows account info (avatar, name, email, plan, creation date via `formatDate`), item and collection totals with counts for the 7 system types, and account actions (`src/components/profile/*`). Mutations are the first Server Actions (`src/actions/account.ts`, `ActionResult` in `src/types/action.ts`), with the user id always taken from the session. Change password is shown only when the user has a password (`getProfileUser` in `src/lib/db/users.ts` exposes `hasPassword`, never the hash) and is also enforced on the server: `src/lib/auth/change-password.ts` requires the current password and deletes pending reset links. Delete account (`AlertDialog`) calls `deleteUser`, which removes items first (`Item.type` is `Restrict`), then email tokens, then the user, and signs out server-side in the same response. Client code uses `unstable_rethrow` so failed requests show an inline error without swallowing redirects. Avatar initials fall back to the email, `resetIdentifier` moved to `src/lib/auth/tokens.ts` so the layout doesn't load Resend/bcrypt, and shadcn `Dialog`/`AlertDialog` were added. No migration. Verified with Playwright on `npm run dev` with throwaway users: counts, change password (errors, old password and old reset link rejected, failed request), delete (cancel, failed request, success, no rows left), mobile width. Not verified: the hidden password row for a GitHub account, and deleting an account with content. Follow-ups: with an expired session, `src/proxy.ts` redirects the Server Action request so the form shows a generic error instead of going to sign-in; no rate limiting on password attempts; other sessions survive a password change; two unexplained, unreproduced sign-in stalls on `/sign-in` during testing.
