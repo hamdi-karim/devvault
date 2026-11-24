@@ -10,6 +10,11 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
+// Prefixed so reset tokens and email verification tokens (bare email) never replace each other.
+export function resetIdentifier(email: string): string {
+  return `password-reset:${email}`;
+}
+
 function newToken(): string {
   return randomBytes(32).toString("hex");
 }

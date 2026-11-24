@@ -44,4 +44,12 @@ export const resetPasswordSchema = z
   .object({ email, token, password: newPassword, confirmPassword: z.string() })
   .refine(passwordsMatch, PASSWORDS_MISMATCH);
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    password: newPassword,
+    confirmPassword: z.string(),
+  })
+  .refine(passwordsMatch, PASSWORDS_MISMATCH);
+
 export const resetLinkSchema = emailLinkSchema;

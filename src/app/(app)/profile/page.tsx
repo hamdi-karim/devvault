@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { UserAvatar } from "@/components/layout/UserAvatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { DashboardSection } from "@/components/dashboard/DashboardSection";
+import { AccountActions } from "@/components/profile/AccountActions";
+import { ProfileInfo } from "@/components/profile/ProfileInfo";
+import { ProfileStats } from "@/components/profile/ProfileStats";
 import { requireUserId } from "@/lib/auth/session";
-import { getCurrentUser } from "@/lib/db/users";
+import { getCollectionStats } from "@/lib/db/collections";
+import { getItemStats, getSystemItemTypes } from "@/lib/db/items";
+import { getProfileUser } from "@/lib/db/users";
 
 export const metadata: Metadata = {
   title: "Profile · DevVault",
@@ -13,28 +16,34 @@ export const metadata: Metadata = {
 
 export default async function ProfilePage() {
   const userId = await requireUserId();
-  const user = await getCurrentUser(userId);
+  const [user, itemStats, collectionStats, itemTypes] = await Promise.all([
+    getProfileUser(userId),
+    getItemStats(userId),
+    getCollectionStats(userId),
+    getSystemItemTypes(userId),
+  ]);
   if (!user) redirect("/sign-in");
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-10">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Profile</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Your account details.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Your account details and usage.</p>
       </div>
 
-      <Card className="max-w-md">
-        <CardContent className="flex items-center gap-4">
-          <UserAvatar name={user.name} image={user.image} size="lg" className="size-14 text-base" />
-          <div className="min-w-0">
-            <p className="truncate text-base font-medium">{user.name ?? "Unnamed user"}</p>
-            <p className="truncate text-sm text-muted-foreground">{user.email}</p>
-          </div>
-          <Badge variant={user.isPro ? "default" : "secondary"} className="ml-auto">
-            {user.isPro ? "Pro" : "Free"}
-          </Badge>
-        </CardContent>
-      </Card>
+      <ProfileInfo user={user} />
+
+      <DashboardSection title="Usage">
+        <ProfileStats
+          items={itemStats.items}
+          collections={collectionStats.collections}
+          itemTypes={itemTypes}
+        />
+      </DashboardSection>
+
+      <DashboardSection title="Account">
+        <AccountActions hasPassword={user.hasPassword} />
+      </DashboardSection>
     </div>
   );
 }

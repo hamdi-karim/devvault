@@ -1,15 +1,10 @@
 import bcrypt from "bcryptjs";
 
 import { db } from "@/lib/db";
-import { createTokenWithCooldown, hashToken } from "@/lib/auth/tokens";
+import { createTokenWithCooldown, hashToken, resetIdentifier } from "@/lib/auth/tokens";
 import { BCRYPT_ROUNDS, EMAIL_RESEND_COOLDOWN_MS, PASSWORD_RESET_TOKEN_TTL_MS } from "@/lib/constants/auth";
 import { getAppUrl } from "@/lib/email/resend";
 import { sendPasswordResetEmail } from "@/lib/email/password-reset-email";
-
-// Prefixed so reset tokens and email verification tokens (bare email) never replace each other.
-function resetIdentifier(email: string): string {
-  return `password-reset:${email}`;
-}
 
 // Sends nothing (returns false) while the per-email cooldown is active.
 export async function issuePasswordResetEmail(email: string): Promise<boolean> {

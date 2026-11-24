@@ -31,7 +31,7 @@ export function UserMenu({ user }: UserMenuProps) {
             render={<SidebarMenuButton size="lg" tooltip={displayName} />}
             className="data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground"
           >
-            <UserAvatar name={user.name} image={user.image} className="rounded-lg after:rounded-lg" />
+            <UserAvatar name={displayName} image={user.image} className="rounded-lg after:rounded-lg" />
             <span className="grid min-w-0 flex-1 text-left leading-tight">
               <span className="truncate font-medium">{displayName}</span>
               <span className="truncate text-xs text-muted-foreground">{user.email}</span>

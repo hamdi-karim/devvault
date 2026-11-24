@@ -1,18 +1,32 @@
-# Current Feature
+# Current Feature: Profile Page
 
-<!-- Feature name and short description -->
+Profile page with user info, usage stats, change password and delete account.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- `/profile` page, available only to signed-in users
+- User info: email, name, avatar (GitHub image or initials) and account creation date
+- Usage stats: total items, total collections and item counts per type (snippets, prompts, notes, commands, links, files, images)
+- Change password, for email/password users only
+- Delete account, with a confirmation dialog
+- Follow existing patterns for data fetching and components
 
 ## Notes
 
-<!-- Any extra notes -->
+- Spec: `context/features/profile-spec.md`
+- Avatar: GitHub image if available, otherwise initials from name/email
+- Change password is hidden for GitHub OAuth users
+- Already in place: a minimal `/profile` page (avatar, name, email, plan badge), protected by `src/proxy.ts` and `requireUserId()`
+- Reuse: `UserAvatar`, `getCurrentUser`, `getItemStats`, `getCollectionStats`, `getSystemItemTypes`, `FormField`/`FormAlert`, and the password rules in `src/lib/validations/auth.ts`
+- `getCurrentUser` needs `createdAt` and whether a password is set (a boolean; never the hash)
+- Enforce the change-password restriction on the server too, and require the current password
+- No shadcn dialog component is installed yet
+- Deleting a user cascades to their content, but `VerificationToken` rows have no user relation and need explicit cleanup. `Item.type` is `onDelete: Restrict`, so check the cascade if custom types exist
+- JWT sessions outlive the account, so sign the user out after deletion; other devices' sessions aren't revoked automatically
 
 ## History
 

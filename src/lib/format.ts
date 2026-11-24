@@ -15,6 +15,13 @@ export function formatRelativeTime(date: string, now: number = Date.now()): stri
   return "now";
 }
 
+const DATE_FORMAT = new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" });
+
+// e.g. "November 24, 2026".
+export function formatDate(date: Date): string {
+  return DATE_FORMAT.format(date);
+}
+
 // Up to two initials from a display name, e.g. "Brad Traversy" → "BT"; "?" when empty.
 export function getInitials(name: string | null | undefined): string {
   const initials = (name ?? "")
