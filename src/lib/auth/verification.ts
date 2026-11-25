@@ -5,7 +5,7 @@ import { getAppUrl } from "@/lib/email/resend";
 import { sendVerificationEmail } from "@/lib/email/verification-email";
 
 // Verification tokens use the bare email as identifier (password reset tokens are prefixed).
-export function createVerificationToken(email: string): Promise<string> {
+function createVerificationToken(email: string): Promise<string> {
   return createToken(email, VERIFICATION_TOKEN_TTL_MS);
 }
 

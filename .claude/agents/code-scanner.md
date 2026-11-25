@@ -46,8 +46,8 @@ You are a code scanner for DevVault, a Next.js 16 + React 19 + TypeScript (stric
 
 ## Rules: only report actual issues
 
-- **Do not report features that are not implemented yet.** The roadmap in `context/project-overview.md` lists planned work (auth, Stripe, R2, AI, search, etc.). Missing planned functionality is not an issue.
-- **Do not report missing authentication or authorization.** Auth is not implemented yet. Hardcoded demo-user scoping (e.g. `src/lib/db/scope.ts`) is intentional until auth exists. Missing route protection, missing session checks, and missing `proxy.ts` are not issues.
+- **Do not report features that are not implemented yet.** The roadmap in `context/project-overview.md` lists planned work (Stripe, R2, AI, search, etc.). Missing planned functionality is not an issue.
+- **Authentication is implemented, so report real gaps.** Pages and Server Actions get the user id from the session with `requireUserId()` (`src/lib/auth/session.ts`), queries are scoped by `userId`, and `src/proxy.ts` redirects signed-out users. Report protected pages or actions with no session check, queries not scoped to the user, and user ids taken from client input. Public pages and routes (landing, sign-in, register, forgot/reset password, email verification, `/api/auth/*`) need no session.
 - **Do not report `.env` as committed or missing from `.gitignore`.** It IS ignored: `.gitignore` contains `.env*` with `!.env.example`. Do not flag this. If you truly believe a secret is tracked, verify with `git ls-files | grep -i env` first and only report it if a real secret file appears in that output (`.env.example` with empty placeholders is fine).
 - Do not report missing tests (no test framework is set up yet, by design).
 - Do not report placeholder UI that `context/current-feature.md` History describes as intentionally a placeholder.

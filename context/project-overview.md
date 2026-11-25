@@ -4,9 +4,9 @@
 
 | | |
 |---|---|
-| **Status** | In progress (Phase 1: Foundation) |
+| **Status** | In progress (Phase 1 complete, next: Phase 2: Core CRUD) |
 | **Model** | Freemium SaaS (Free / Pro) |
-| **Stack** | Next.js 16 · React 19 · TypeScript · Prisma 7 · Neon Postgres · Auth.js v5 · Cloudflare R2 · Tailwind v4 · shadcn/ui · OpenAI |
+| **Stack** | Next.js 16 · React 19 · TypeScript · Prisma 7 · Neon Postgres · Auth.js v5 · Resend · Cloudflare R2 · Tailwind v4 · shadcn/ui · OpenAI |
 
 ---
 
@@ -562,6 +562,7 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 | File storage | **Cloudflare R2** | S3-compatible API, presigned uploads, no egress fees |
 | Auth | **Auth.js (NextAuth) v5** | Credentials (email/password) + GitHub OAuth |
 | AI | **OpenAI `gpt-5-nano`** | Pro only, server-side calls only |
+| Email | **Resend** | Email verification and password reset |
 | Payments | **Stripe** | Checkout + Customer Portal + webhooks |
 | Styling | **Tailwind CSS v4** + **shadcn/ui** | Lucide icons |
 | Syntax highlighting | e.g. **Shiki** | Server-rendered highlighting |
@@ -578,6 +579,11 @@ DIRECT_URL=     # direct connection (Prisma CLI: migrate, studio)
 AUTH_SECRET=
 AUTH_GITHUB_ID=
 AUTH_GITHUB_SECRET=
+
+# Email (Resend)
+RESEND_API_KEY=
+EMAIL_FROM=     # sender; needs a verified domain in production
+APP_URL=        # public base URL used in emailed links
 
 # Cloudflare R2
 R2_ACCOUNT_ID=
@@ -723,13 +729,18 @@ It does not to be exact, use it as a reference:
 | Route | Purpose |
 |---|---|
 | `/` | Marketing / landing page |
-| `/sign-in`, `/sign-up` | Auth |
+| `/sign-in`, `/register` | Auth |
+| `/forgot-password`, `/reset-password` | Password reset |
 | `/dashboard` | Collections grid + pinned/recent items |
 | `/items/[slug]` | All items of a type, e.g. `/items/snippets` |
 | `/collections` | All collections |
 | `/collections/[id]` | Items in a collection |
-| `/settings` | Profile, billing, export |
+| `/profile` | Account info, usage, change password, delete account |
+| `/settings` | Billing, export |
 | `/api/auth/[...nextauth]` | Auth.js handlers |
+| `/api/auth/register` | Create an email/password account |
+| `/api/auth/verify-email`, `/api/auth/resend-verification` | Email verification |
+| `/api/auth/forgot-password`, `/api/auth/reset-password` | Password reset |
 | `/api/webhooks/stripe` | Stripe webhook |
 
 ### Suggested structure
@@ -744,31 +755,41 @@ devvault/
 ├── src/
 │   ├── app/
 │   │   ├── (marketing)/page.tsx
-│   │   ├── (auth)/sign-in/  sign-up/
+│   │   ├── (auth)/sign-in/  register/  forgot-password/  reset-password/
 │   │   ├── (app)/
 │   │   │   ├── layout.tsx      # sidebar + header
 │   │   │   ├── dashboard/
 │   │   │   ├── items/[slug]/
 │   │   │   ├── collections/[id]/
+│   │   │   ├── profile/
 │   │   │   └── settings/
 │   │   └── api/
-│   │       ├── auth/[...nextauth]/route.ts
+│   │       ├── auth/               # [...nextauth], register, verify-email, resend-verification, forgot-password, reset-password
 │   │       └── webhooks/stripe/route.ts
-│   ├── actions/                # Server Actions: items, collections, ai, upload
+│   ├── actions/                # Server Actions: account, items, collections, ai, upload
 │   ├── components/
 │   │   ├── ui/                 # shadcn
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── profile/
 │   │   ├── items/
 │   │   ├── collections/
 │   │   └── layout/
 │   ├── generated/prisma/       # Prisma client output (gitignored)
 │   ├── lib/
 │   │   ├── db.ts
-│   │   ├── auth.ts
+│   │   ├── db/                 # queries
+│   │   ├── auth/               # session, tokens, verification, password reset
+│   │   ├── email/              # Resend client and templates
+│   │   ├── validations/        # Zod schemas
 │   │   ├── r2.ts
 │   │   ├── openai.ts
 │   │   ├── stripe.ts
 │   │   ├── plans.ts
 │   │   └── constants/item-types.ts
+│   ├── types/
+│   ├── auth.ts                 # full Auth.js config (Node runtime)
+│   ├── auth.config.ts          # edge-safe Auth.js config used by proxy.ts
 │   └── proxy.ts                # route protection (formerly middleware.ts)
 └── .env
 ```
@@ -816,7 +837,6 @@ Open questions:
 - ❓ Max file size per upload and total storage per Pro user?
 - ❓ AI usage limits per Pro user (to control OpenAI cost)?
 - ❓ Should tags be free-form or suggested from existing tags only?
-- ❓ Email verification and password reset for email/password accounts (needs a transactional email provider)?
 
 ---
 
@@ -831,6 +851,7 @@ Open questions:
 | Neon | https://neon.com/docs |
 | Auth.js (NextAuth v5) | https://authjs.dev |
 | Auth.js Prisma adapter | https://authjs.dev/getting-started/adapters/prisma |
+| Resend | https://resend.com/docs |
 | Cloudflare R2 | https://developers.cloudflare.com/r2 |
 | Tailwind CSS v4 | https://tailwindcss.com/docs |
 | shadcn/ui | https://ui.shadcn.com |

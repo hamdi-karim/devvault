@@ -26,6 +26,7 @@ Read the following to get the full context of the project:
 - `npm run db:seed`: seed system item types (not run automatically by Prisma 7 migrate)
 - `npm run db:studio`: open Prisma Studio
 - `npm run db:test`: check the database connection and seeded data
+- `npm run db:prune-users`: delete all dev users except the demo user (dry run unless `-- --confirm`)
 
 No test framework is set up yet.
 

@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DevVault
 
-## Getting Started
+Your dev knowledge, in one vault. Snippets, prompts, commands and links, searchable and AI-enhanced.
 
-First, run the development server:
+> In progress: authentication, the dashboard and the profile page are built. See the [project overview](context/project-overview.md) for planned features and the roadmap.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Next.js 16, React 19, TypeScript, Prisma 7, Neon Postgres, Auth.js v5, Resend, Tailwind CSS v4 and shadcn/ui.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Getting started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Install dependencies (this also generates the Prisma client):
 
-## Learn More
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. Copy `.env.example` to `.env` and fill in the values. Use a development database.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Apply the migrations, then seed the item types and demo user:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   npm run db:migrate
+   npm run db:seed
+   ```
 
-## Deploy on Vercel
+4. Start the dev server at http://localhost:3000:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Commands
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run lint` | Run ESLint |
+| `npm run db:migrate -- --name <name>` | Create and apply a migration |
+| `npm run db:migrate:status` | Check migration status |
+| `npm run db:seed` | Seed the database |
+| `npm run db:studio` | Open Prisma Studio |
+
+Schema changes always go through migrations, never `prisma db push`.
