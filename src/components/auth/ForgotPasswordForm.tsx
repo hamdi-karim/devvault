@@ -36,8 +36,13 @@ export function ForgotPasswordForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),
       });
-      if (response.ok) setSent(true);
-      else setFormError(GENERIC_ERROR);
+      if (response.ok) {
+        setSent(true);
+      } else {
+        const body = (await response.json().catch(() => null)) as { error?: string | null } | null;
+        setSent(false);
+        setFormError(body?.error ?? GENERIC_ERROR);
+      }
     } catch {
       setFormError(GENERIC_ERROR);
     }

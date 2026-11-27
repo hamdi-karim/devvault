@@ -6,3 +6,5 @@ export const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 export const EMAIL_RESEND_COOLDOWN_MS = 60 * 1000;
 // CredentialsSignin code returned to the client when an email/password user hasn't verified yet.
 export const EMAIL_NOT_VERIFIED_CODE = "email_not_verified";
+// CredentialsSignin code returned to the client when sign-in attempts are rate limited.
+export const RATE_LIMITED_CODE = "rate_limited";

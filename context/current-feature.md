@@ -1,18 +1,37 @@
-# Current Feature
+# Current Feature: Rate Limiting for Auth
 
-<!-- Feature name and short description -->
+Rate limit authentication endpoints with Upstash Redis to stop brute force, credential stuffing and abuse of the email-sending endpoints. Spec: `context/features/rate-limiting-spec.md`.
 
 ## Feature Status
 
-<!-- Not started | In progress | Completed -->
+In Progress
 
 ## Goals
 
-<!-- Goals and Requirements -->
+- Add `@upstash/ratelimit` + `@upstash/redis` and a reusable `src/lib/rate-limit.ts` utility (sliding window, returns `{ success, remaining, reset }`)
+- Read the client IP from `x-forwarded-for` (Vercel), falling back to the request
+- Limits (all sliding window):
+  - Login (`authorize()` in `src/auth.ts`): 5 / 15 min by IP + email **and** 20 / 15 min by IP; both must pass
+  - `POST /api/auth/register`: 3 / 1 h by IP
+  - `POST /api/auth/forgot-password`: 3 / 1 h by IP
+  - `POST /api/auth/reset-password`: 5 / 15 min by IP
+  - `POST /api/auth/resend-verification`: 3 / 15 min by IP + email
+  - `changePassword` Server Action (`src/actions/account.ts`): 5 / 15 min by user ID
+- API routes return 429 with `{ error: "Too many attempts. Please try again in X minutes." }` and a `Retry-After` header
+- Login checks run before the DB lookup and bcrypt compare; when blocked, throw a `CredentialsSignin` subclass with code `rate_limited` (same pattern as `EmailNotVerifiedError`), which `SignInForm` maps to the rate-limit message
+- `changePassword` checks before verifying the current password and returns `{ success: false, error }` when blocked
+- Frontend shows the rate-limit message inline via `FormAlert` on every affected form (sign-in, register, forgot password, reset password, resend verification, change password)
+- Fail open: if Upstash is unavailable or the env vars are missing, requests are allowed
 
 ## Notes
 
-<!-- Any extra notes -->
+- Env vars: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (already in `.env`, Vercel Production + Preview, and `.env.example`)
+- One Upstash database (`devvault`, AWS `eu-central-1`, same region as Neon) is shared by Production, Preview and local dev, so prefix keys with `VERCEL_ENV` (fallback `development`)
+- Free tier: 500K commands/month; the default in-memory `ephemeralCache` avoids Redis calls for already-blocked clients
+- Two limits run on IP + email: login, and resend-verification. The rest use IP or user ID
+- `forgot-password` and `resend-verification` keep their uniform 200 for allowed requests; a 429 doesn't reveal whether an account exists, because the limit counts requests regardless of the email
+- Login limiting is the motivation, but it also covers the profile page follow-up "no rate limiting on password attempts"
+- Later: consider middleware for cleaner wiring, and reuse the limiter for AI quotas in Phase 7
 
 ## History
 

@@ -12,7 +12,7 @@ import { GitHubIcon } from "@/components/auth/GitHubIcon";
 import { ResendVerificationButton } from "@/components/auth/ResendVerificationButton";
 import { Button } from "@/components/ui/button";
 import { safeCallbackUrl } from "@/lib/auth/callback-url";
-import { EMAIL_NOT_VERIFIED_CODE } from "@/lib/constants/auth";
+import { EMAIL_NOT_VERIFIED_CODE, RATE_LIMITED_CODE } from "@/lib/constants/auth";
 import { signInSchema } from "@/lib/validations/auth";
 import { type FieldErrors, zodFieldErrors } from "@/lib/validations/form";
 
@@ -31,6 +31,8 @@ interface SignInFormProps {
 
 const OAUTH_ERROR = "Could not sign in with GitHub. Please try again.";
 const CREDENTIALS_ERROR = "Invalid email or password.";
+// Auth.js only passes the error code to the client, so the exact wait time isn't available here.
+const RATE_LIMIT_ERROR = "Too many sign-in attempts. Please try again in a few minutes.";
 const INVALID_LINK_ERROR = "This verification link is invalid or has expired. Sign in to request a new one.";
 
 // Errors arriving via the `error` query param: our verify route, otherwise the GitHub OAuth flow.
@@ -69,6 +71,7 @@ export function SignInForm({ callbackUrl, registered, verified, reset, error }: 
     const result = await signIn("credentials", { ...parsed.data, redirect: false, redirectTo });
     if (result?.error) {
       if (result.code === EMAIL_NOT_VERIFIED_CODE) setUnverifiedEmail(parsed.data.email);
+      else if (result.code === RATE_LIMITED_CODE) setFormError(RATE_LIMIT_ERROR);
       else setFormError(CREDENTIALS_ERROR);
       setPending(null);
       return;

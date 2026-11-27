@@ -558,7 +558,7 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 | Language | **TypeScript** | Strict mode |
 | Database | **Neon** (serverless Postgres) | Separate branches for dev / prod |
 | ORM | **Prisma 7** | Migrations only, Neon driver adapter |
-| Cache | **Redis** *(maybe)* | Defer until there's a measured need |
+| Rate limiting / cache | **Upstash Redis** | `@upstash/ratelimit` on auth endpoints (`src/lib/rate-limit.ts`); caching deferred until there's a measured need |
 | File storage | **Cloudflare R2** | S3-compatible API, presigned uploads, no egress fees |
 | Auth | **Auth.js (NextAuth) v5** | Credentials (email/password) + GitHub OAuth |
 | AI | **OpenAI `gpt-5-nano`** | Pro only, server-side calls only |
@@ -593,6 +593,10 @@ R2_BUCKET_NAME=
 
 # OpenAI
 OPENAI_API_KEY=
+
+# Upstash Redis (rate limiting; disabled when unset)
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 
 # Stripe
 STRIPE_SECRET_KEY=

@@ -5,6 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { BCRYPT_ROUNDS } from "@/lib/constants/auth";
 import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
 import { issueVerificationEmail } from "@/lib/auth/verification";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { registerSchema } from "@/lib/validations/auth";
 
 const EMAIL_TAKEN = "An account with this email already exists";
@@ -34,6 +35,9 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return errorResponse(parsed.error.issues[0]?.message ?? "Invalid input", 400);
   }
+
+  const limit = await checkRateLimit("register", getClientIp(request.headers));
+  if (!limit.success) return rateLimitResponse(limit);
 
   const { name, email, password } = parsed.data;
 

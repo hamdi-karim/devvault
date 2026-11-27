@@ -4,8 +4,9 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { signInSchema } from "@/lib/validations/auth";
-import { EMAIL_NOT_VERIFIED_CODE } from "@/lib/constants/auth";
+import { EMAIL_NOT_VERIFIED_CODE, RATE_LIMITED_CODE } from "@/lib/constants/auth";
 import { isEmailVerificationEnabled } from "@/lib/auth/email-verification";
+import { checkRateLimit, emailKey, getClientIp } from "@/lib/rate-limit";
 import authConfig from "./auth.config";
 
 // Surfaces as `result.code` from the client signIn() so the form can offer a new verification link.
@@ -13,14 +14,31 @@ class EmailNotVerifiedError extends CredentialsSignin {
   code = EMAIL_NOT_VERIFIED_CODE;
 }
 
+class RateLimitedError extends CredentialsSignin {
+  code = RATE_LIMITED_CODE;
+}
+
+// Per IP + email stops brute force on one account; per IP alone stops credential stuffing across many.
+async function isSignInAllowed(request: Request, email: string): Promise<boolean> {
+  const ip = getClientIp(request.headers);
+  const [perEmail, perIp] = await Promise.all([
+    checkRateLimit("signInEmail", emailKey(ip, email)),
+    checkRateLimit("signInIp", ip),
+  ]);
+  return perEmail.success && perIp.success;
+}
+
 // Real Credentials provider (Node runtime only): replaces the edge-safe placeholder from auth.config.ts.
 const credentialsProvider = Credentials({
   credentials: { email: {}, password: {} },
-  async authorize(credentials) {
+  async authorize(credentials, request) {
     const parsed = signInSchema.safeParse(credentials);
     if (!parsed.success) return null;
 
     const { email, password } = parsed.data;
+    // Before the DB lookup and bcrypt, so blocked attempts cost nothing.
+    if (!(await isSignInAllowed(request, email))) throw new RateLimitedError();
+
     const user = await db.user.findUnique({ where: { email } });
     // OAuth-only users have no password and can't sign in with credentials.
     if (!user?.password) return null;

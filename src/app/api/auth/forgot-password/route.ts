@@ -3,6 +3,7 @@ import { after, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { issuePasswordResetEmail } from "@/lib/auth/password-reset";
 import { forgotPasswordSchema } from "@/lib/validations/auth";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 // Same response whether or not an email was sent, so this can't be used to discover accounts.
 const OK = { success: true, data: null, error: null };
@@ -20,6 +21,9 @@ export async function POST(request: Request) {
     const error = parsed.error.issues[0]?.message ?? "Invalid input";
     return NextResponse.json({ success: false, data: null, error }, { status: 400 });
   }
+
+  const limit = await checkRateLimit("forgotPassword", getClientIp(request.headers));
+  if (!limit.success) return rateLimitResponse(limit);
 
   const { email } = parsed.data;
   // All work runs after the response, so response time doesn't reveal whether an email was sent.

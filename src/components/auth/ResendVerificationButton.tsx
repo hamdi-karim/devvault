@@ -11,8 +11,11 @@ interface ResendVerificationButtonProps {
 
 type Status = "idle" | "pending" | "sent" | "error";
 
+const SEND_ERROR = "Could not send the email. Please try again.";
+
 export function ResendVerificationButton({ email }: ResendVerificationButtonProps) {
   const [status, setStatus] = useState<Status>("idle");
+  const [errorMessage, setErrorMessage] = useState(SEND_ERROR);
 
   async function handleClick() {
     setStatus("pending");
@@ -22,8 +25,16 @@ export function ResendVerificationButton({ email }: ResendVerificationButtonProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      setStatus(response.ok ? "sent" : "error");
+      if (response.ok) {
+        setStatus("sent");
+        return;
+      }
+      // A 429 carries a "try again in X minutes" message.
+      const body = (await response.json().catch(() => null)) as { error?: string | null } | null;
+      setErrorMessage(response.status === 429 && body?.error ? body.error : SEND_ERROR);
+      setStatus("error");
     } catch {
+      setErrorMessage(SEND_ERROR);
       setStatus("error");
     }
   }
@@ -45,7 +56,7 @@ export function ResendVerificationButton({ email }: ResendVerificationButtonProp
         {status === "pending" && <Loader2 className="animate-spin" />}
         Resend verification email
       </Button>
-      {status === "error" && <span className="block">Could not send the email. Please try again.</span>}
+      {status === "error" && <span className="block">{errorMessage}</span>}
     </span>
   );
 }

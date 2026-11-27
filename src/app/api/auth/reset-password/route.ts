@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { resetPassword } from "@/lib/auth/password-reset";
 import { resetPasswordSchema } from "@/lib/validations/auth";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 const INVALID_LINK = "This reset link is invalid or has expired. Request a new one.";
 
@@ -24,6 +25,9 @@ export async function POST(request: Request) {
     const linkProblem = issue?.path[0] === "email" || issue?.path[0] === "token";
     return errorResponse(linkProblem ? INVALID_LINK : (issue?.message ?? "Invalid input"), 400);
   }
+
+  const limit = await checkRateLimit("resetPassword", getClientIp(request.headers));
+  if (!limit.success) return rateLimitResponse(limit);
 
   const { email, token, password } = parsed.data;
   try {
